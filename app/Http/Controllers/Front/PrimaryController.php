@@ -7,43 +7,58 @@ use Illuminate\View\View;
 
 class PrimaryController extends Controller
 {
+    protected array $dataArr = [];
+
+    public function __construct()
+    {
+        $this->dataArr['company_name'] = 'Nutech Office System Pvt. Ltd.';
+    }
+
     public function index(): View
     {
-        return view('front.index', ['active_page' => 'home']);
+        $this->dataArr['active_page'] = 'home';
+        return view('front.index', $this->dataArr);
     }
 
     public function about(): View
     {
-        return view('front.about', ['active_page' => 'about']);
+        $this->dataArr['active_page'] = 'about';
+        return view('front.about', $this->dataArr);
     }
 
     public function products(): View
     {
-        return view('front.products', ['active_page' => 'products']);
+        $this->dataArr['active_page'] = 'products';
+        return view('front.products', $this->dataArr);
     }
 
-    public function service(): View
+    public function services(): View
     {
-        return view('front.service', ['active_page' => 'services']);
+        $this->dataArr['active_page'] = 'services';
+        return view('front.services', $this->dataArr);
     }
 
     public function projects(): View
     {
-        return view('front.projects', ['active_page' => 'projects']);
+        $this->dataArr['active_page'] = 'projects';
+        return view('front.projects', $this->dataArr);
     }
 
     public function support(): View
     {
-        return view('front.support', ['active_page' => 'support']);
+        $this->dataArr['active_page'] = 'support';
+        return view('front.support', $this->dataArr);
     }
 
     public function contact(): View
     {
-        return view('front.contact', ['active_page' => 'contact']);
+        $this->dataArr['active_page'] = 'contact';
+        return view('front.contact', $this->dataArr);
     }
 
     public function quote(): View
     {
-        return view('front.quote', ['active_page' => 'quote']);
+        $this->dataArr['active_page'] = 'quote';
+        return view('front.quote', $this->dataArr);
     }
 }

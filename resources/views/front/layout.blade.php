@@ -26,8 +26,9 @@
          <div class="container d-flex align-items-center">
             <!-- Logo -->
             <div class="d-flex align-items-center h-100">
-               <a href="{{ url('/') }}" class="navbar-brand" style="height: 125px;">
-                  <h1 class="text-primary mb-0"><i class="fas fa-building"></i> Nutech</h1>
+               <a href="{{ url('/') }}" class="navbar-brand d-flex align-items-center" style="height: 125px;">
+                  <!-- Logo Image -->
+                  <img src="{{ asset('front/img/logo.jpg') }}" alt="Nutech Logo" class="logo">
                </a>
             </div>
             <div class="w-100 h-100">

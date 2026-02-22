@@ -830,7 +830,8 @@
 }
 /*** copyright end ***/
 
-
-
-
-
+.logo{
+    height: 80px;
+    width: auto;
+    margin-top: 43px;
+}
