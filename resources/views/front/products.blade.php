@@ -91,8 +91,7 @@
                                     {{-- Product Image: Path points to public/img/products/ --}}
                                     <img src="{{ asset('products/' . $product['image']) }}" 
                                          class="img-fluid w-100" 
-                                         alt="{{ $product['title'] }}"
-                                         onerror="this.src='<?php asset('img/products/placeholder.jpg') ?>'">
+                                         alt="{{ $product['title'] }}">
                                     
                                     <div class="bg-primary text-white position-absolute top-0 end-0 m-2 py-1 px-2 small rounded">
                                         {{ $product['price'] }}

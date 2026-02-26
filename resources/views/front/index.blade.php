@@ -5,14 +5,16 @@
 @php
 $slides = [
     [
-        'bg' => 'hero-bg-half-1', 
+        'first_half_bg' => 'conference-table-hq.png', 
+        'second_half_bg' => 'designer-office-furniture-hq.png', 
         'shape' => 'hero-shape-1', 
         'title' => 'Innovative Modular Office & Workspace Solutions',
         'subtitle' => 'Manufacturer • Supplier • Interior Planner Since 2007',
         'desc' => 'Nutech Office System Pvt. Ltd. specializes in high-quality modular workstations, executive tables, and customized partitions for corporate, banking, and educational sectors.'
     ],
     [
-        'bg' => 'hero-bg-half-2', 
+        'first_half_bg' => 'full-height-office-partition-hq.png', 
+        'second_half_bg' => 'work-station-hq.png', 
         'shape' => 'hero-shape-2', 
         'title' => 'Ergonomic Designs for Productive Environments',
         'subtitle' => 'Trusted by ITC, Tata Steel, SBI & More',
@@ -23,18 +25,26 @@ $slides = [
 
 <div class="header-carousel owl-carousel overflow-hidden">
     @foreach ($slides as $slide)
-    <div class="header-carousel-item hero-section position-relative">
-        <div class="{{ $slide['bg'] }}"></div>
-        <div class="{{ $slide['shape'] }}"></div>
-        <div class="carousel-caption">
-            <div class="container">
-                <div class="row g-4 align-items-center">
-                    <div class="col-lg-7 animated fadeInLeft">
-                        <div class="text-sm-center text-md-start">
+        <div class="header-carousel-item hero-section position-relative" 
+             style="background-image: url('<?php echo asset('products/' . $slide['first_half_bg']) ?>');">
+
+            <!-- Right half overlay -->
+            <div class="{{ $loop->first ? 'hero-bg-half-1' : 'hero-bg-half-2' }}" 
+                 style="background-image: url('<?php echo asset('products/' . $slide['second_half_bg']) ?>');">
+            </div>
+
+            <!-- Optional shape overlay -->
+            <div class="{{ $slide['shape'] }}"></div>
+
+            <!-- Text confined to left side (first-half only) -->
+            <div class="carousel-caption hero-left">
+                <div class="container h-100">
+                    <div class="row h-100 align-items-center">
+                        <div class="col-12 col-lg-10 col-xl-8">
                             <h4 class="text-white text-uppercase fw-bold mb-4">{{ $slide['subtitle'] }}</h4>
                             <h1 class="display-2 text-white mb-4">{{ $slide['title'] }}</h1>
                             <p class="mb-5 fs-5">{{ $slide['desc'] }}</p>
-                            <div class="d-flex justify-content-center justify-content-md-start flex-shrink-0 mb-4">
+                            <div class="d-flex flex-wrap justify-content-start mb-4">
                                 <a class="btn btn-light py-3 px-4 px-md-5 me-2" href="{{ url('/products') }}">Explore Products</a>
                                 <a class="btn btn-primary py-3 px-4 px-md-5 ms-2" href="{{ url('/contact') }}">Get a Quote</a>
                             </div>
@@ -42,8 +52,8 @@ $slides = [
                     </div>
                 </div>
             </div>
+
         </div>
-    </div>
     @endforeach
 </div>
 

@@ -394,10 +394,9 @@
 }
 /*** Navbar End ***/
 
-
 /*** Carousel Hero Header Start ***/
 .hero-section {
-    background-image: url(../img/carousel-1.jpg);
+    /* background-image: url(../img/carousel-1.jpg); */
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
@@ -408,8 +407,25 @@
     position: relative;
 }
 
+/* Keep your original hero-section and hero-bg-half-* as-is */
+
+.hero-left {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 38%;             /* smaller than first half */
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 30px;     /* optional spacing from left edge */
+    padding-right: 20px;    /* prevent text from touching splitter */
+    z-index: 5;             /* above first-half background */
+    overflow-wrap: break-word;
+    box-sizing: border-box; /* include padding in width */
+}
+
 .hero-bg-half-1 {
-    background-image: url(../img/header-2.jpg);
+    /* background-image: url(../img/header-2.jpg); */
     clip-path: polygon(37% 0%, 100% 0%, 100% 100%, 0% 100%);
     filter: grayscale(10%);
     transform: scale(100% - 50%);
@@ -424,7 +440,7 @@
 }
 
 .hero-bg-half-2 {
-    background-image: url(../img/header-1.jpg);
+    /* background-image: url(../img/header-1.jpg); */
     clip-path: polygon(37% 0%, 100% 0%, 100% 100%, 0% 100%);
     filter: grayscale(10%);
     transform: scale(100% - 50%);
