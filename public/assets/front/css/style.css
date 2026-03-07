@@ -362,7 +362,7 @@
     .header-top .navbar-brand {
         position: relative;
         overflow: hidden;
-        padding: 40px 50px 40px 0;
+        padding: 84px 50px 40px 0;
         z-index: 99;
     }
     
@@ -370,7 +370,7 @@
         content: "";
         position: absolute;
         overflow: hidden;
-        width: 300px;
+        /* width: 300px; */
         height: 600px;
         top: -200px;
         right: 18px;
@@ -390,6 +390,7 @@
         background: var(--bs-primary);
         transform: rotate(-18deg);
         z-index: -1;
+        border: 0px solid var(--bs-dark);
     }
 }
 /*** Navbar End ***/
@@ -854,4 +855,86 @@
 
 .anchor-logo{
     height: 125px;
+}
+
+/* =====================================================
+   HEADER FIX OVERRIDE (KEEP ORIGINAL CSS ABOVE)
+   ===================================================== */
+
+/* ---------- Keep dark angled logo area ---------- */
+.header-top {
+    position: relative;
+    overflow: visible;
+}
+
+/* ---------- Make navbar full-width white ---------- */
+.nav-bar {
+    background: var(--bs-white);
+    width: 100%;
+}
+
+/* remove boxed menu background */
+@media (min-width: 992px) {
+
+    .navbar .navbar-nav {
+        background: transparent !important;
+        border-radius: 0 !important;
+        justify-content: center;
+    }
+
+    /* extend white area to left side */
+    .nav-bar .navbar::before {
+        content: "";
+        position: absolute;
+        left: -2000px;
+        top: 0;
+        width: 2000px;
+        height: 100%;
+        background: var(--bs-white);
+        z-index: -1;
+    }
+}
+
+/* ---------- navbar alignment fix ---------- */
+.nav-bar .navbar {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: transparent !important;
+}
+
+/* menu spacing */
+.navbar .navbar-nav .nav-item {
+    margin-right: 25px;
+}
+
+/* prevent collapse jump */
+.navbar-collapse {
+    align-items: center;
+}
+
+/* ---------- logo alignment fix ---------- */
+.anchor-logo {
+    height: 125px;
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 80px;
+    width: auto;
+    margin-top: 0 !important;
+}
+
+/* ---------- mobile safety ---------- */
+@media (max-width: 991px) {
+
+    .nav-bar {
+        background: var(--bs-white);
+    }
+
+    .navbar .navbar-nav {
+        background: var(--bs-light);
+        border-radius: 0;
+    }
 }
