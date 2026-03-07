@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('jobs', function (Blueprint $table) {
@@ -18,6 +15,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('attempts');
             $table->unsignedInteger('reserved_at')->nullable();
             $table->unsignedInteger('available_at');
+            $table->boolean('is_blocked')->default(false);
+            $table->boolean('is_deleted')->default(false);
             $table->unsignedInteger('created_at');
         });
 
@@ -29,6 +28,8 @@ return new class extends Migration
             $table->integer('failed_jobs');
             $table->longText('failed_job_ids');
             $table->mediumText('options')->nullable();
+            $table->boolean('is_blocked')->default(false);
+            $table->boolean('is_deleted')->default(false);
             $table->integer('cancelled_at')->nullable();
             $table->integer('created_at');
             $table->integer('finished_at')->nullable();
@@ -45,9 +46,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('jobs');

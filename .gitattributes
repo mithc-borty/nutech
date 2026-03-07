@@ -1,11 +1,14 @@
 * text=auto eol=lf
-
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
-
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+database/sql/countries-states-cities/cities.sql filter=lfs diff=lfs merge=lfs -text
+*.sql filter=lfs diff=lfs merge=lfs -text
+database/sql/countries-states-cities/countries.sql filter=lfs diff=lfs merge=lfs -text
+database/sql/countries-states-cities/states.sql filter=lfs diff=lfs merge=lfs -text
+database/sql/countries_indvidual.sql filter=lfs diff=lfs merge=lfs -text

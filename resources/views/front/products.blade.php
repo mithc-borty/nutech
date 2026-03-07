@@ -88,7 +88,6 @@
                         <div class="col-md-6 col-lg-3">
                             <div class="product-item border rounded h-100 d-flex flex-column bg-white shadow-sm">
                                 <div class="product-img position-relative overflow-hidden">
-                                    {{-- Product Image: Path points to public/img/products/ --}}
                                     <img src="{{ asset('products/' . $product['image']) }}" 
                                          class="img-fluid w-100" 
                                          alt="{{ $product['title'] }}">
