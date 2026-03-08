@@ -27,5 +27,8 @@ Route::prefix('admin')->group(function () {
         Route::post('delete-product-categories', [PrimaryController::class, 'deleteProductCategories']);
         Route::post('add-edit-product-category', [PrimaryController::class, 'addEditProductCategory']);
         Route::post('product-category-detail', [PrimaryController::class, 'productCategoryDetail']);
+        Route::post('products', [PrimaryController::class, 'products']);
+        Route::post('delete-products', [PrimaryController::class, 'deleteProducts']);
+        Route::post('add-edit-product', [PrimaryController::class, 'addEditproduct']);
     });
 });

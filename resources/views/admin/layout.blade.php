@@ -171,14 +171,14 @@
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                     
-                    @foreach(menu_items(null) as $menu)
+                    @foreach(menu_items() as $menu)
                         @php
                             $children = menu_items(null, $menu->id);
                             $hasChildren = $children->isNotEmpty();
                         @endphp
 
                         <li class="nav-item {{ $hasChildren ? 'menu-open' : '' }}">
-                            <a href="{{ $hasChildren ? '#' : url('admin/'.$menu->slug) }}" class="nav-link {{ $active_page ==  $menu->slug? 'active': ''}}">
+                            <a href="{{ $hasChildren ? '#' : url('admin/'.$menu->slug) }}" class="nav-link {{ $active_page ==  $menu->menu_key? 'active': ''}}">
                                 <i class="nav-icon {{ $menu->icon ?? 'fas fa-circle' }}"></i>
                                 <p>
                                     {{ $menu->menu_name }}

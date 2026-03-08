@@ -14,6 +14,7 @@ use App\Enums\UserGenderEnums;
 use App\Models\UserModel;
 use App\Models\StateModel;
 use App\Models\ProductCategoryModel;
+use App\Models\ProductModel;
 use App\Models\PasswordResetToken;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -632,6 +633,147 @@ class PrimaryController extends Controller
                 'description' => $category->description,
                 'icon' => $category->icon,
             ]
+        ]);
+    }
+
+    public function products(Request $request)
+    {
+        $columns = [
+            0 => 'id',
+            1 => 'title',
+            2 => 'category_id',
+            3 => 'price',
+        ];
+
+        $totalData = ProductModel::withoutGlobalScopes()->where('is_deleted', false)->count();
+        $totalFiltered = $totalData;
+
+        $limit = intval($request->input('length', 10));
+        $start = intval($request->input('start', 0));
+        $orderColumnIndex = intval($request->input('order.0.column', 1));
+        $orderColumn = $columns[$orderColumnIndex] ?? 'id';
+        $orderDir = $request->input('order.0.dir', 'asc');
+        $search = $request->input('search.value', null);
+
+        $query = ProductModel::withoutGlobalScopes()->where('is_deleted', false)->with('category', 'images');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhere('price', 'like', "%{$search}%");
+            });
+            $totalFiltered = $query->count();
+        }
+
+        $products = $query->orderBy($orderColumn, $orderDir)
+                        ->offset($start)
+                        ->limit($limit)
+                        ->get();
+
+        $data = [];
+        foreach ($products as $product) {
+            $data[] = [
+                'id' => $product->id,
+                'title' => $product->title,
+                'category' => $product->category?->name ?? '',
+                'price' => $product->price,
+                'description' => $product->description,
+                'images' => $product->images->map(fn($img) => asset('storage/assets/images/product/'.$img->image))->toArray(),
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($request->input('draw', 1)),
+            'recordsTotal' => $totalData,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
+    }
+
+    public function deleteProducts(Request $request)
+    {
+        $ids = $request->post('ids', []);
+
+        if (empty($ids) || !is_array($ids)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No product selected for deletion',
+            ], 422);
+        }
+
+        $updated = ProductModel::whereIn('id', $ids)->update(['is_deleted' => true]);
+
+        if ($updated) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Product(s) deleted successfully'
+            ]);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Failed to delete product(s)'
+        ], 500);
+    }
+
+    public function addEditProduct(Request $request)
+    {
+        $id = $request->post('id', 0);
+
+        $rules = [
+            'category_id' => 'required|exists:product_categories,id',
+            'title'       => 'required|string|min:2|max:150',
+            'price'       => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:2000',
+            'features'    => 'nullable|array',
+            'specifications' => 'nullable|array',
+            'images.*'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        if ($id) {
+            $product = ProductModel::find($id);
+            if (!$product) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Product not found',
+                ], 404);
+            }
+        } else {
+            $product = new ProductModel();
+        }
+
+        $product->category_id    = $request->category_id;
+        $product->title          = $request->title;
+        $product->price          = $request->price;
+        $product->description    = $request->description;
+        $product->features       = $request->features;
+        $product->specifications = $request->specifications;
+        $product->save();
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $filename = time().'_'.$file->getClientOriginalName();
+                $file->storeAs('assets/images/product', $filename, 'public');
+                $product->images()->create([
+                    'image' => $filename,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => $id ? 'Product updated successfully' : 'Product created successfully',
+            'data' => $product->load('images'),
         ]);
     }
 }

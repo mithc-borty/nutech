@@ -27,22 +27,16 @@ class ProductModel extends Model
         'is_deleted' => 'boolean',
     ];
 
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ProductCategoryModel::class, 'category_id');
+    }
+
     protected static function booted()
     {
         static::addGlobalScope('active', function ($query) {
             $query->where('is_blocked', false)
                   ->where('is_deleted', false);
         });
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(ProductCategoryModel::class, 'category_id');
-    }
-
-    public function scopeBlocked($query)
-    {
-        return $query->where('is_blocked', true)
-                     ->where('is_deleted', false);
     }
 }

@@ -12,6 +12,7 @@ use App\Models\UserModel;
 use App\Models\CountryModel;
 use App\Models\StateModel;
 use App\Models\ProductCategoryModel;
+use App\Models\ProductModel;
 use Illuminate\Support\Facades\Auth;
 
 class PrimaryController extends Controller
@@ -115,6 +116,28 @@ class PrimaryController extends Controller
         $this->viewDataArr['active_page'] = 'product_categories';
         $this->viewDataArr['parent_categories'] = ProductCategoryModel::all();
         return view('admin.product_categories', $this->viewDataArr);
+    }
+
+    public function products(Request $request): View
+    {
+        $this->viewDataArr['active_page'] = 'products';
+        $this->viewDataArr['categories'] = ProductCategoryModel::orderBy('name')->get();
+
+        return view('admin.products', $this->viewDataArr);
+    }
+
+    public function addEditProduct(Request $request, $id = 0): View
+    {
+        $this->viewDataArr['active_page'] = 'products';
+        $product = $id > 0 ? ProductModel::with('category')->find($id) : null;
+        $this->viewDataArr['product'] = $product;
+        $this->viewDataArr['categories'] = ProductCategoryModel::orderBy('name')->get();
+        $this->viewDataArr['statuses'] = [
+            0 => 'Inactive',
+            1 => 'Active'
+        ];
+
+        return view('admin.add_edit_product', $this->viewDataArr);
     }
 
     public function settings(Request $request): View

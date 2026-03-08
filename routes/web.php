@@ -29,6 +29,7 @@ Route::prefix('admin')->middleware('web')->group(function () {
         Route::get('users', [AdminPrimaryController::class, 'users']);
         Route::get('add-edit-user/{id}', [AdminPrimaryController::class, 'addEditUser']);
         Route::get('product-categories', [AdminPrimaryController::class, 'productCategories']);
+        Route::get('products', [AdminPrimaryController::class, 'products']);
         Route::get('settings', [AdminPrimaryController::class, 'settings']);
 
         Route::get('profile', [AdminPrimaryController::class, 'profile']);

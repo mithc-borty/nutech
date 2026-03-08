@@ -21,16 +21,16 @@ class ProductImageModel extends Model
         'is_deleted' => 'boolean',
     ];
 
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(ProductModel::class, 'product_id');
+    }
+
     protected static function booted()
     {
         static::addGlobalScope('active', function ($query) {
             $query->where('is_blocked', false)
                   ->where('is_deleted', false);
         });
-    }
-
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(ProductModel::class, 'product_id');
     }
 }
