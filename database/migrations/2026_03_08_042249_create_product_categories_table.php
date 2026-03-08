@@ -9,80 +9,83 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('menus', function (Blueprint $table) {
+        Schema::create('product_categories', function (Blueprint $table) {
+
             $table->id();
-            $table->string('menu_name');
-            $table->string('slug')->unique();
-            $table->string('menu_key')->unique();
+
+            $table->string('name')->unique();
+
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('product_categories')
+                ->nullOnDelete();
+
+            $table->text('description')->nullable();
+
             $table->string('icon')->nullable();
-            $table->integer('menu_order')->default(0);
-            $table->unsignedBigInteger('parent_id')->nullable();
+
             $table->boolean('is_blocked')->default(false);
             $table->boolean('is_deleted')->default(false);
-            $table->timestamps();
 
-            $table->foreign('parent_id')
-                  ->references('id')
-                  ->on('menus')
-                  ->onDelete('cascade');
+            $table->timestamps();
         });
 
-        DB::table('menus')->insert([
+        DB::table('product_categories')->insert([
             [
-                'menu_name' => 'Dashboard',
-                'slug' => 'dashboard',
-                'menu_key' => 'dashboard',
-                'icon' => 'fas fa-home',
-                'menu_order' => 1,
+                'name' => 'Reception Tables',
                 'parent_id' => null,
+                'description' => 'Reception desk furniture solutions',
+                'icon' => null,
                 'is_blocked' => false,
                 'is_deleted' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'menu_name' => 'Users',
-                'slug' => 'users',
-                'menu_key' => 'users',
-                'icon' => 'fas fa-users',
-                'menu_order' => 2,
+                'name' => 'Conference Tables',
                 'parent_id' => null,
+                'description' => 'Meeting and conference room tables',
+                'icon' => null,
                 'is_blocked' => false,
                 'is_deleted' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'menu_name' => 'Product Categories',
-                'slug' => 'product-categories',
-                'menu_key' => 'product_categories',
-                'icon' => 'fas fa-square',
-                'menu_order' => 3,
+                'name' => 'Office Partitions',
                 'parent_id' => null,
+                'description' => 'Office space partition systems',
+                'icon' => null,
                 'is_blocked' => false,
                 'is_deleted' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'menu_name' => 'Products',
-                'slug' => 'products',
-                'menu_key' => 'products',
-                'icon' => 'fas fa-cube',
-                'menu_order' => 4,
+                'name' => 'Office Tables',
                 'parent_id' => null,
+                'description' => 'Office work and executive tables',
+                'icon' => null,
                 'is_blocked' => false,
                 'is_deleted' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'menu_name' => 'Settings',
-                'slug' => 'settings',
-                'menu_key' => 'settings',
-                'icon' => 'fas fa-cog',
-                'menu_order' => 5,
+                'name' => 'Modular Workstations',
                 'parent_id' => null,
+                'description' => 'Team workstation desk systems',
+                'icon' => null,
+                'is_blocked' => false,
+                'is_deleted' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Storage Solutions',
+                'parent_id' => null,
+                'description' => 'Office storage cabinets and solutions',
+                'icon' => null,
                 'is_blocked' => false,
                 'is_deleted' => false,
                 'created_at' => now(),
@@ -93,6 +96,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('menus');
+        Schema::dropIfExists('product_categories');
     }
 };
