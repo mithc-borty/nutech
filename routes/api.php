@@ -23,5 +23,9 @@ Route::prefix('admin')->group(function () {
         Route::post('delete-users', [PrimaryController::class, 'deleteUsers']);
         Route::post('add-edit-user', [PrimaryController::class, 'addEditUser']);
         Route::post('check-username', [PrimaryController::class, 'checkUsername']);
+        Route::post('product-categories', [PrimaryController::class, 'productCategories']);
+        Route::post('delete-product-categories', [PrimaryController::class, 'deleteProductCategories']);
+        Route::post('add-edit-product-category', [PrimaryController::class, 'addEditProductCategory']);
+        Route::post('product-category-detail', [PrimaryController::class, 'productCategoryDetail']);
     });
 });

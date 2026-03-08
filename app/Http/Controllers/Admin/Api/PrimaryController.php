@@ -13,9 +13,10 @@ use App\Enums\UserTypeEnums;
 use App\Enums\UserGenderEnums;
 use App\Models\UserModel;
 use App\Models\StateModel;
+use App\Models\ProductCategoryModel;
+use App\Models\PasswordResetToken;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use App\Models\PasswordResetToken;
 
 class PrimaryController extends Controller
 {
@@ -482,5 +483,155 @@ class PrimaryController extends Controller
                 'message' => 'Failed to delete user(s)'
             ], 500);
         }
+    }
+
+    public function productCategories(Request $request)
+    {
+        $columns = [
+            0 => 'id',
+            1 => 'name',
+            2 => 'parent_id',
+            3 => 'description',
+            4 => 'icon',
+            5 => 'is_blocked',
+        ];
+
+        $totalData = ProductCategoryModel::withoutGlobalScope('active')->count();
+        $totalFiltered = $totalData;
+
+        $limit = intval($request->input('length', 10));
+        $start = intval($request->input('start', 0));
+        $orderColumnIndex = intval($request->input('order.0.column', 1));
+        $orderColumn = $columns[$orderColumnIndex] ?? 'id';
+        $orderDir = $request->input('order.0.dir', 'asc');
+        $search = $request->input('search.value', null);
+
+        $query = ProductCategoryModel::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhere('icon', 'like', "%{$search}%");
+            });
+            $totalFiltered = $query->count();
+        }
+
+        $categories = $query->orderBy($orderColumn, $orderDir)
+            ->offset($start)
+            ->limit($limit)
+            ->get();
+
+        $data = [];
+        foreach ($categories as $cat) {
+            $data[] = [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'parent_name' => $cat->parent?->name ?? '',
+                'description' => $cat->description,
+                'icon' => $cat->icon,
+                'is_blocked' => $cat->is_blocked,
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($request->input('draw', 1)),
+            'recordsTotal' => $totalData,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
+    }
+
+    public function deleteProductCategories(Request $request)
+    {
+        $ids = $request->post('ids', []);
+
+        if (empty($ids) || !is_array($ids)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No category selected for deletion',
+            ], 422);
+        }
+
+        $updated = ProductCategoryModel::whereIn('id', $ids)
+            ->update(['is_deleted' => 1]);
+
+        if ($updated) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Category(s) deleted successfully'
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to delete category(s)'
+            ], 500);
+        }
+    }
+
+    public function addEditProductCategory(Request $request)
+    {
+        $id = $request->post('id', 0);
+
+        $rules = [
+            'name'        => 'required|string|min:2|max:100|unique:product_categories,name' . ($id ? ",$id" : ''),
+            'parent_id'   => 'nullable|exists:product_categories,id',
+            'description' => 'nullable|string|max:500',
+            'icon'        => 'nullable|string|max:100',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        if ($id) {
+            $category = ProductCategoryModel::find($id);
+            if (!$category) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Category not found',
+                ], 404);
+            }
+        } else {
+            $category = new ProductCategoryModel();
+        }
+
+        $category->name        = $request->name;
+        $category->parent_id   = $request->parent_id ?: null;
+        $category->description = $request->description;
+        $category->icon        = $request->icon;
+        $category->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => $id ? 'Category updated successfully' : 'Category created successfully',
+            'data' => $category,
+        ]);
+    }
+
+    public function productCategoryDetail(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer|exists:product_categories,id',
+        ]);
+
+        $category = ProductCategoryModel::with('parent')->findOrFail($request->id);
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'parent_id' => $category->parent_id,
+                'parent_name' => $category->parent?->name,
+                'description' => $category->description,
+                'icon' => $category->icon,
+            ]
+        ]);
     }
 }

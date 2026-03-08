@@ -11,6 +11,7 @@ use App\Enums\UserGenderEnums;
 use App\Models\UserModel;
 use App\Models\CountryModel;
 use App\Models\StateModel;
+use App\Models\ProductCategoryModel;
 use Illuminate\Support\Facades\Auth;
 
 class PrimaryController extends Controller
@@ -50,7 +51,6 @@ class PrimaryController extends Controller
     public function users(Request $request): View
     {
         $this->viewDataArr['active_page']   =   'users';
-        view()->share('active_page', $this->viewDataArr['active_page']);
         $this->viewDataArr['user_types'] = collect(UserTypeEnums::types())->mapWithKeys(function($type) {
             return [$type->value => match($type) {
                 UserTypeEnums::super_admin => 'Super Administrator',
@@ -78,7 +78,6 @@ class PrimaryController extends Controller
     public function addEditUser(Request $request, $id = 0): View
     {
         $this->viewDataArr['active_page']   =   'users';
-        view()->share('active_page', $this->viewDataArr['active_page']);
         $user = $id > 0 ? UserModel::find($id) : null;
 
         $this->viewDataArr['user']      = $user;
@@ -111,11 +110,17 @@ class PrimaryController extends Controller
         return view('admin.add_edit_user', $this->viewDataArr);
     }
 
+    public function productCategories(Request $request): View
+    {
+        $this->viewDataArr['active_page'] = 'product_categories';
+        $this->viewDataArr['parent_categories'] = ProductCategoryModel::all();
+        return view('admin.product_categories', $this->viewDataArr);
+    }
+
     public function settings(Request $request): View
     {
         $this->viewDataArr['active_page']   =   'settings';
-        view()->share('active_page', $this->viewDataArr['active_page']);
-        return view('admin.settings');
+        return view('admin.settings', $this->viewDataArr);
     }
 
     public function profile()

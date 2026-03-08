@@ -24,14 +24,6 @@ class ProductCategoryModel extends Model
         'is_deleted' => 'boolean',
     ];
 
-    protected static function booted()
-    {
-        static::addGlobalScope('active', function ($query) {
-            $query->where('is_blocked', false)
-                  ->where('is_deleted', false);
-        });
-    }
-
     public function parent(): BelongsTo
     {
         return $this->belongsTo(ProductCategoryModel::class, 'parent_id');
@@ -41,17 +33,12 @@ class ProductCategoryModel extends Model
     {
         return $this->hasMany(ProductCategoryModel::class, 'parent_id');
     }
-
-    public function scopeBlocked($query)
+    
+    protected static function booted()
     {
-        return $query->where('is_blocked', true)
-                     ->where('is_deleted', false);
-    }
-
-    public function scopeRoot($query)
-    {
-        return $query->whereNull('parent_id')
-                     ->where('is_blocked', false)
-                     ->where('is_deleted', false);
+        static::addGlobalScope('active', function ($query) {
+            $query->where('is_blocked', false)
+                  ->where('is_deleted', false);
+        });
     }
 }
