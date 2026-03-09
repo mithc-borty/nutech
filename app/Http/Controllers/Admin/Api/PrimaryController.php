@@ -16,6 +16,7 @@ use App\Models\StateModel;
 use App\Models\ProductCategoryModel;
 use App\Models\ProductModel;
 use App\Models\ProductImageModel;
+use App\Models\FrontSettingModel;
 use App\Models\PasswordResetToken;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -838,6 +839,81 @@ class PrimaryController extends Controller
                     'is_default' => $img->is_default,
                 ]),
             ],
+        ]);
+    }
+
+    public function frontSettingDetail()
+    {
+        $frontSetting = FrontSettingModel::with([
+            'sliders' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order'),
+            'services' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order'),
+            'clients' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order'),
+            'aboutStats' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order')
+        ])->first();
+
+        return response()->json([
+            'status' => true,
+            'data' => $frontSetting
+        ]);
+    }
+
+    public function updateFrontSetting(Request $request)
+    {
+        $data = $request->all();
+
+        $frontSetting = FrontSettingModel::firstOrCreate([], [
+            'site_title' => null,
+            'meta_description' => null,
+            'front_logo' => null,
+            'favicon' => null,
+            'footer_text' => null,
+            'about_heading' => null,
+            'about_desc' => null,
+            'about_image' => null,
+            'cta_heading' => null,
+            'cta_subheading' => null,
+            'cta_btn_text' => null,
+            'cta_btn_url' => null,
+            'cta_bg_image' => null,
+            'is_blocked' => false,
+            'is_deleted' => false
+        ]);
+
+        $fileFields = ['front_logo', 'favicon', 'about_image', 'cta_bg_image'];
+
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                $file = $request->file($field);
+                $path = $file->store('public/assets/images/front_setting');
+                $data[$field] = str_replace('public/', 'storage/', $path);
+            }
+        }
+
+        $frontSetting->saveWithRelations([
+            'front_setting' => [
+                'site_title' => $data['site_title'] ?? $frontSetting->site_title,
+                'meta_description' => $data['meta_description'] ?? $frontSetting->meta_description,
+                'front_logo' => $data['front_logo'] ?? $frontSetting->front_logo,
+                'favicon' => $data['favicon'] ?? $frontSetting->favicon,
+                'footer_text' => $data['footer_text'] ?? $frontSetting->footer_text,
+                'about_heading' => $data['about_heading'] ?? $frontSetting->about_heading,
+                'about_desc' => $data['about_desc'] ?? $frontSetting->about_desc,
+                'about_image' => $data['about_image'] ?? $frontSetting->about_image,
+                'cta_heading' => $data['cta_heading'] ?? $frontSetting->cta_heading,
+                'cta_subheading' => $data['cta_subheading'] ?? $frontSetting->cta_subheading,
+                'cta_btn_text' => $data['cta_btn_text'] ?? $frontSetting->cta_btn_text,
+                'cta_btn_url' => $data['cta_btn_url'] ?? $frontSetting->cta_btn_url,
+                'cta_bg_image' => $data['cta_bg_image'] ?? $frontSetting->cta_bg_image,
+            ],
+            'sliders' => $data['sliders'] ?? [],
+            'services' => $data['services'] ?? [],
+            'clients' => $data['clients'] ?? [],
+            'about_stats' => $data['about_stats'] ?? []
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Front settings updated successfully'
         ]);
     }
 }
