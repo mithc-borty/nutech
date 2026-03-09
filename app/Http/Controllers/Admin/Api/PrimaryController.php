@@ -730,12 +730,12 @@ class PrimaryController extends Controller
     {
         $id = $request->post('id', 0);
 
-        $features = $request->post('features') 
-            ? array_filter(array_map('trim', explode("\n", $request->post('features')))) 
+        $features = $request->post('features')
+            ? array_filter(array_map('trim', explode("\n", $request->post('features'))))
             : [];
 
-        $specifications = $request->post('specifications') 
-            ? array_filter(array_map('trim', explode("\n", $request->post('specifications')))) 
+        $specifications = $request->post('specifications')
+            ? array_filter(array_map('trim', explode("\n", $request->post('specifications'))))
             : [];
 
         $rules = [
@@ -746,7 +746,7 @@ class PrimaryController extends Controller
             'features'       => 'nullable|array',
             'specifications' => 'nullable|array',
             'images.*'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'default_image'  => 'nullable|integer',
+            'default_image'  => 'nullable',
             'deleted_images' => 'nullable|array',
         ];
 
@@ -756,6 +756,7 @@ class PrimaryController extends Controller
         ]);
 
         $validator = Validator::make($request->all(), $rules);
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -764,6 +765,7 @@ class PrimaryController extends Controller
         }
 
         $product = $id ? ProductModel::find($id) : new ProductModel();
+
         if ($id && !$product) {
             return response()->json([
                 'status' => false,
@@ -779,8 +781,6 @@ class PrimaryController extends Controller
         $product->specifications = $specifications;
         $product->save();
 
-        $defaultIndex = intval($request->post('default_image', 0));
-
         $deletedIds = $request->post('deleted_images', []);
         if (!empty($deletedIds) && $id) {
             $imagesToDelete = $product->images()
@@ -789,28 +789,38 @@ class PrimaryController extends Controller
                 ->get();
 
             foreach ($imagesToDelete as $img) {
-                Storage::disk('public')->delete('assets/images/product/'.$img->image);
+                Storage::disk('public')->delete('assets/images/product/' . $img->image);
                 $img->delete();
             }
         }
 
+        $newImageIds = [];
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $index => $file) {
-                $filename = time().'_'.$file->getClientOriginalName();
+            foreach ($request->file('images') as $file) {
+                $filename = time() . '_' . $file->getClientOriginalName();
                 $file->storeAs('assets/images/product', $filename, 'public');
 
-                $product->images()->create([
+                $image = $product->images()->create([
                     'image' => $filename,
-                    'is_default' => ($index === $defaultIndex),
+                    'is_default' => 0,
                 ]);
+                $newImageIds[] = $image->id;
             }
         }
 
-        $allImages = $product->images()->withoutGlobalScope('active')->get();
-        $allImages->each(function($img, $index) use ($defaultIndex) {
-            $img->is_default = ($index === $defaultIndex);
-            $img->save();
-        });
+        $defaultValue = $request->post('default_image');
+        $product->images()->withoutGlobalScope('active')->update(['is_default' => 0]);
+
+        if ($defaultValue) {
+            if (in_array($defaultValue, $product->images()->pluck('id')->toArray())) {
+                $product->images()->withoutGlobalScope('active')->where('id', $defaultValue)->update(['is_default' => 1]);
+            } elseif (!empty($newImageIds)) {
+                $lastNewId = end($newImageIds);
+                $product->images()->withoutGlobalScope('active')->where('id', $lastNewId)->update(['is_default' => 1]);
+            }
+        } elseif (!empty($newImageIds)) {
+            $product->images()->withoutGlobalScope('active')->where('id', $newImageIds[0])->update(['is_default' => 1]);
+        }
 
         return response()->json([
             'status'  => true,
@@ -846,6 +856,7 @@ class PrimaryController extends Controller
                 'features'       => $product->features ?? [],
                 'specifications' => $product->specifications ?? [],
                 'images'         => $product->images->map(fn($img) => [
+                     'id' => $img->id,
                     'url' => url('storage/assets/images/product/' . $img->image),
                     'is_default' => $img->is_default,
                 ]),

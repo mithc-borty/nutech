@@ -85,3 +85,53 @@
 .sidebar-user-logo{
     height: 2.1rem !important;
 }
+
+#imagePreviewContainer, #existingImages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.image-thumb {
+    position: relative;
+    display: inline-block;
+}
+.image-thumb img {
+    height: 70px;
+    width: 70px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.image-thumb input[type="radio"] {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+.image-thumb .delete-img {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.1s ease;
+}
+.image-thumb .delete-img:hover {
+    transform: scale(1.1);
+}
+
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}

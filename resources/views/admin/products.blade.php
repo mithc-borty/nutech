@@ -164,55 +164,6 @@
 </div>
 @endsection
 
-@section('CSS')
-<style>
-#imagePreviewContainer, #existingImages {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-.image-thumb {
-    position: relative;
-    display: inline-block;
-}
-.image-thumb img {
-    height: 70px;
-    width: 70px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-.image-thumb input[type="radio"] {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-}
-.image-thumb .delete-img {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background-color: #dc3545;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    transition: transform 0.1s ease;
-}
-.image-thumb .delete-img:hover {
-    transform: scale(1.1);
-}
-</style>
-@endsection
-
 @section('JS')
 <script>
 $(document).ready(function(){
@@ -273,11 +224,13 @@ $(document).ready(function(){
         columnDefs:[{targets:0,searchable:false,orderable:false}]
     });
 
-    $('#addProductBtn').click(()=>{
+    $('#addProductBtn').click(() => {
         $('#productForm')[0].reset();
         $('#product_id').val('');
         $('#existingImages').html('');
         $('#imagePreviewContainer').html('');
+        $('#productImages').val('');
+        $('#deletedImagesContainer').remove();
         productModal.find('.modal-title').text('Add Product');
         productModal.modal('show');
     });
@@ -311,12 +264,12 @@ $(document).ready(function(){
                 $('textarea[name=description]').val(p.description);
                 $('textarea[name=features]').val(Array.isArray(p.features) ? p.features.join("\n") : '');
                 $('textarea[name=specifications]').val(Array.isArray(p.specifications) ? p.specifications.join("\n") : '');
-
+                
                 $('#imagePreviewContainer').html('');
                 $('#existingImages').html('');
-                
-                $('#deletedImages').remove();
-                
+                $('#productImages').val('');
+                $('#deletedImagesContainer').remove();
+
                 if(p.images && Array.isArray(p.images)){
                     p.images.forEach((img, index) => {
                         let checked = img.is_default ? 'checked' : '';
@@ -340,23 +293,31 @@ $(document).ready(function(){
 
     $('#productForm').submit(function(e){
         e.preventDefault();
-        let formData=new FormData(this);
-        formData.append('_token',"{{ csrf_token() }}");
+        let formData = new FormData(this);
+        formData.append('_token', "{{ csrf_token() }}");
         $.ajax({
-            url:"{{ url('api/admin/add-edit-product') }}",
-            method:"POST",
-            data:formData,
-            processData:false,
-            contentType:false,
-            success:function(res){
+            url: "{{ url('api/admin/add-edit-product') }}",
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res){
                 productModal.modal('hide');
+                $('#productForm')[0].reset();
+                $('#product_id').val('');
+                $('#productImages').val('');
+                $('#imagePreviewContainer').html('');
+                $('#existingImages').html('');
+                $('#deletedImagesContainer').remove();
                 if(res.status){
-                    showMessage('success',res.message??'Saved successfully');
+                    showMessage('success', res.message ?? 'Saved successfully');
                     table.ajax.reload();
-                }else showMessage('error',res.message??'Something went wrong');
+                } else {
+                    showMessage('error', res.message ?? 'Something went wrong');
+                }
             },
-            error:function(xhr){
-                showMessage('error',xhr.responseJSON?.message??'Something went wrong');
+            error: function(xhr){
+                showMessage('error', xhr.responseJSON?.message ?? 'Something went wrong');
             }
         });
     });
