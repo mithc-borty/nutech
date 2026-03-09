@@ -21,7 +21,7 @@ return new class extends Migration
         DB::table('settings')->insert([
             [
                 'setting_key' => 'site_name',
-                'setting_value' => 'Universal Admin MVC',
+                'setting_value' => 'Nutech Admin',
                 'is_blocked' => false,
                 'is_deleted' => false,
                 'created_at' => now(),
@@ -29,7 +29,7 @@ return new class extends Migration
             ],
             [
                 'setting_key' => 'site_url',
-                'setting_value' => 'http://universal-admin-mvc.local/',
+                'setting_value' => 'http://nutech.local/',
                 'is_blocked' => false,
                 'is_deleted' => false,
                 'created_at' => now(),

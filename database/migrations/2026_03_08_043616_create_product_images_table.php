@@ -18,6 +18,7 @@ return new class extends Migration
                   ->nullOnDelete();
 
             $table->string('image');
+            $table->boolean('is_default')->default(false);
             $table->boolean('is_blocked')->default(false);
             $table->boolean('is_deleted')->default(false);
 

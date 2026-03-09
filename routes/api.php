@@ -30,5 +30,6 @@ Route::prefix('admin')->group(function () {
         Route::post('products', [PrimaryController::class, 'products']);
         Route::post('delete-products', [PrimaryController::class, 'deleteProducts']);
         Route::post('add-edit-product', [PrimaryController::class, 'addEditproduct']);
+        Route::post('product-detail', [PrimaryController::class, 'productDetail']);
     });
 });

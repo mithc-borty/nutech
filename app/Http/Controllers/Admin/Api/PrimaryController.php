@@ -15,6 +15,7 @@ use App\Models\UserModel;
 use App\Models\StateModel;
 use App\Models\ProductCategoryModel;
 use App\Models\ProductModel;
+use App\Models\ProductImageModel;
 use App\Models\PasswordResetToken;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -655,7 +656,9 @@ class PrimaryController extends Controller
         $orderDir = $request->input('order.0.dir', 'asc');
         $search = $request->input('search.value', null);
 
-        $query = ProductModel::withoutGlobalScopes()->where('is_deleted', false)->with('category', 'images');
+        $query = ProductModel::withoutGlobalScopes()
+                    ->where('is_deleted', false)
+                    ->with('category', 'images');
 
         if ($search) {
             $query->where(function($q) use ($search) {
@@ -673,13 +676,18 @@ class PrimaryController extends Controller
 
         $data = [];
         foreach ($products as $product) {
+            $thumbnail = $product->images->firstWhere('is_default', true);
+            if (!$thumbnail && $product->images->isNotEmpty()) {
+                $thumbnail = $product->images->first();
+            }
+
             $data[] = [
                 'id' => $product->id,
                 'title' => $product->title,
                 'category' => $product->category?->name ?? '',
                 'price' => $product->price,
                 'description' => $product->description,
-                'images' => $product->images->map(fn($img) => asset('storage/assets/images/product/'.$img->image))->toArray(),
+                'image' => $thumbnail ? url('storage/assets/images/product/' . $thumbnail->image) : null,
             ];
         }
 
@@ -721,18 +729,31 @@ class PrimaryController extends Controller
     {
         $id = $request->post('id', 0);
 
+        $features = $request->post('features') 
+            ? array_filter(array_map('trim', explode("\n", $request->post('features')))) 
+            : [];
+
+        $specifications = $request->post('specifications') 
+            ? array_filter(array_map('trim', explode("\n", $request->post('specifications')))) 
+            : [];
+
         $rules = [
-            'category_id' => 'required|exists:product_categories,id',
-            'title'       => 'required|string|min:2|max:150',
-            'price'       => 'required|numeric|min:0',
-            'description' => 'nullable|string|max:2000',
-            'features'    => 'nullable|array',
+            'category_id'    => 'required|exists:product_categories,id',
+            'title'          => 'required|string|min:2|max:150',
+            'price'          => 'required|numeric|min:0',
+            'description'    => 'nullable|string|max:2000',
+            'features'       => 'nullable|array',
             'specifications' => 'nullable|array',
-            'images.*'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'images.*'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'default_image'  => 'nullable|integer',
         ];
 
-        $validator = Validator::make($request->all(), $rules);
+        $request->merge([
+            'features' => $features,
+            'specifications' => $specifications,
+        ]);
 
+        $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -740,40 +761,83 @@ class PrimaryController extends Controller
             ], 422);
         }
 
-        if ($id) {
-            $product = ProductModel::find($id);
-            if (!$product) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Product not found',
-                ], 404);
-            }
-        } else {
-            $product = new ProductModel();
+        $product = $id ? ProductModel::find($id) : new ProductModel();
+        if ($id && !$product) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product not found',
+            ], 404);
         }
 
         $product->category_id    = $request->category_id;
         $product->title          = $request->title;
         $product->price          = $request->price;
         $product->description    = $request->description;
-        $product->features       = $request->features;
-        $product->specifications = $request->specifications;
+        $product->features       = $features;
+        $product->specifications = $specifications;
         $product->save();
 
+        $defaultIndex = intval($request->post('default_image', 0));
+
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
+            foreach ($request->file('images') as $index => $file) {
                 $filename = time().'_'.$file->getClientOriginalName();
                 $file->storeAs('assets/images/product', $filename, 'public');
+
                 $product->images()->create([
                     'image' => $filename,
+                    'is_default' => ($index === $defaultIndex),
                 ]);
             }
         }
 
+        if ($id && $product->images()->count() > 0) {
+            $images = $product->images()->get();
+
+            $images->each(function($img, $index) use ($defaultIndex) {
+                $img->is_default = ($index === $defaultIndex);
+                $img->save();
+            });
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => $id ? 'Product updated successfully' : 'Product created successfully',
+            'data'    => $product->load('images'),
+        ]);
+    }
+
+    public function productDetail(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:products,id',
+        ]);
+
+        $product = ProductModel::with('images', 'category')->find($request->id);
+
+        if (!$product) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product not found',
+            ], 404);
+        }
+
         return response()->json([
             'status' => true,
-            'message' => $id ? 'Product updated successfully' : 'Product created successfully',
-            'data' => $product->load('images'),
+            'data'   => [
+                'id'             => $product->id,
+                'category_id'    => $product->category_id,
+                'category'       => $product->category->name ?? null,
+                'title'          => $product->title,
+                'price'          => $product->price,
+                'description'    => $product->description,
+                'features'       => $product->features ?? [],
+                'specifications' => $product->specifications ?? [],
+                'images'         => $product->images->map(fn($img) => [
+                    'url' => url('storage/assets/images/product/' . $img->image),
+                    'is_default' => $img->is_default,
+                ]),
+            ],
         ]);
     }
 }

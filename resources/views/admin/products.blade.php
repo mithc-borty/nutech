@@ -1,10 +1,9 @@
 @extends('admin.layout')
 
-@section('title', 'Products')
+@section('title','Products')
 
 @section('content')
 <div class="content-wrapper">
-
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -25,12 +24,8 @@
                 <div class="card-header d-flex align-items-center">
                     <h3 class="card-title">Product List</h3>
                     <div class="ml-auto">
-                        <button id="addProductBtn" class="btn btn-success btn-sm" title="Add Product">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button id="deleteSelected" class="btn btn-danger btn-sm" title="Delete Selected">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <button id="addProductBtn" class="btn btn-success btn-sm"><i class="fas fa-plus"></i></button>
+                        <button id="deleteSelected" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -41,7 +36,7 @@
                                 <th>Title</th>
                                 <th>Category</th>
                                 <th>Price</th>
-                                <th>Images</th>
+                                <th>Image</th>
                                 <th width="140">Actions</th>
                             </tr>
                         </thead>
@@ -51,7 +46,6 @@
             </div>
         </div>
     </section>
-
 </div>
 
 <div class="modal fade" id="productModal" tabindex="-1">
@@ -64,10 +58,12 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="id" id="product_id">
+
                     <div class="form-group">
                         <label>Title</label>
                         <input type="text" name="title" class="form-control" required>
                     </div>
+
                     <div class="form-group">
                         <label>Category</label>
                         <select name="category_id" class="form-control" required>
@@ -77,25 +73,31 @@
                             @endforeach
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label>Price</label>
                         <input type="number" step="0.01" name="price" class="form-control" required>
                     </div>
+
                     <div class="form-group">
                         <label>Description</label>
                         <textarea name="description" class="form-control"></textarea>
                     </div>
+
                     <div class="form-group">
-                        <label>Features (JSON Array)</label>
-                        <textarea name="features" class="form-control" placeholder='["Feature1","Feature2"]'></textarea>
+                        <label>Features (one per line)</label>
+                        <textarea name="features" class="form-control" rows="4"></textarea>
                     </div>
+
                     <div class="form-group">
-                        <label>Specifications (JSON Array)</label>
-                        <textarea name="specifications" class="form-control" placeholder='["Spec1","Spec2"]'></textarea>
+                        <label>Specifications (one per line)</label>
+                        <textarea name="specifications" class="form-control" rows="4"></textarea>
                     </div>
+
                     <div class="form-group">
                         <label>Images</label>
-                        <input type="file" name="images[]" class="form-control" multiple accept="image/*">
+                        <input type="file" id="productImages" name="images[]" class="form-control" multiple accept="image/*">
+                        <div id="imagePreviewContainer" class="mt-2 d-flex flex-wrap"></div>
                         <div id="existingImages" class="mt-2 d-flex flex-wrap"></div>
                     </div>
                 </div>
@@ -142,74 +144,71 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @section('JS')
 <script>
-$(document).ready(function () {
+$(document).ready(function(){
+    let idsToDelete=[];
+    let productModal=$('#productModal');
+    let deleteModal=$('#deleteConfirmModal');
+    let selectAlertModal=$('#selectAlertModal');
 
-    let idsToDelete = [];
-    let productModal = $('#productModal');
-    let deleteModal = $('#deleteConfirmModal');
-    let selectAlertModal = $('#selectAlertModal');
-
-    let table = $('#productsTable').DataTable({
-        processing: true,
-        serverSide: true,
-        responsive: true,
-        autoWidth: false,
-        pageLength: 25,
-        ajax: {
-            url: "{{ url('api/admin/products') }}",
-            type: "POST",
-            data: { _token: "{{ csrf_token() }}" }
+    let table=$('#productsTable').DataTable({
+        processing:true,
+        serverSide:true,
+        responsive:true,
+        autoWidth:false,
+        pageLength:25,
+        ajax:{
+            url:"{{ url('api/admin/products') }}",
+            type:"POST",
+            data:{_token:"{{ csrf_token() }}"}
         },
-        columns: [
-            { 
-                data: 'id',
-                orderable: false,
-                searchable: false,
-                render: id => `<input type="checkbox" class="rowCheckbox" value="${id}">`
-            },
-            { data: 'title' },
-            { data: 'category', render: data => data ?? '' },
-            { data: 'price' },
-            { 
-                data: 'images',
-                orderable: false,
-                searchable: false,
-                render: imgs => imgs.map(i => `<img src="${i}" class="img-thumbnail mr-1" style="height:40px;">`).join('')
-            },
-            { 
-                data: 'id',
-                orderable: false,
-                searchable: false,
-                render: id => `
-                    <button class="btn btn-info btn-sm editProduct" data-id="${id}">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm singleDelete" data-id="${id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `
-            }
+        columns:[
+            {data:'id',orderable:false,searchable:false,render:id=>`<input type="checkbox" class="rowCheckbox" value="${id}">`},
+            {data:'title'},
+            {data:'category',render:data=>data??''},
+            {data:'price'},
+            {data:'image',orderable:false,searchable:false,render:i=>i?`<img src="${i}" class="img-thumbnail" style="height:40px">`:''},
+            {data:'id',orderable:false,searchable:false,render:id=>`
+                <button class="btn btn-info btn-sm editProduct" data-id="${id}"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger btn-sm singleDelete" data-id="${id}"><i class="fas fa-trash"></i></button>
+            `}
         ],
-        order: [[1,'asc']],
-        columnDefs: [{ targets: 0, searchable: false, orderable: false }]
+        order:[[1,'asc']],
+        columnDefs:[{targets:0,searchable:false,orderable:false}]
     });
 
-    $('#addProductBtn').click(() => {
+    $('#addProductBtn').click(()=>{
         $('#productForm')[0].reset();
         $('#product_id').val('');
         $('#existingImages').html('');
+        $('#imagePreviewContainer').html('');
         productModal.find('.modal-title').text('Add Product');
         productModal.modal('show');
     });
 
-    $(document).on('click', '.editProduct', function(){
+    $('#productImages').on('change',function(){
+        let preview=$('#imagePreviewContainer');
+        preview.html('');
+        let files=this.files;
+        if(!files.length) return;
+        $.each(files,function(index,file){
+            let reader=new FileReader();
+            reader.onload=function(e){
+                preview.append(`<div class="mr-2 mb-2 position-relative">
+                    <img src="${e.target.result}" class="img-thumbnail" style="height:70px;width:70px;object-fit:cover">
+                    <input type="radio" name="default_image" value="${index}" class="position-absolute" style="top:0;left:0">
+                </div>`);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    $(document).on('click','.editProduct',function(){
         let id = $(this).data('id');
-        $.post("{{ url('api/admin/product-detail') }}", { _token: "{{ csrf_token() }}", id: id }, function(res){
+        $.post("{{ url('api/admin/product-detail') }}", {_token:"{{ csrf_token() }}", id:id}, function(res){
             if(res.status){
                 let p = res.data;
                 $('#product_id').val(p.id);
@@ -217,16 +216,23 @@ $(document).ready(function () {
                 $('select[name=category_id]').val(p.category_id);
                 $('input[name=price]').val(p.price);
                 $('textarea[name=description]').val(p.description);
-                $('textarea[name=features]').val(JSON.stringify(p.features ?? []));
-                $('textarea[name=specifications]').val(JSON.stringify(p.specifications ?? []));
+                $('textarea[name=features]').val(Array.isArray(p.features) ? p.features.join("\n") : '');
+                $('textarea[name=specifications]').val(Array.isArray(p.specifications) ? p.specifications.join("\n") : '');
                 
-                let imagesHtml = '';
-                if(p.images){
-                    p.images.forEach(img => {
-                        imagesHtml += `<img src="${img}" class="img-thumbnail mr-1 mb-1" style="height:50px;">`;
+                $('#imagePreviewContainer').html('');
+                $('#existingImages').html('');
+
+                if(p.images && Array.isArray(p.images)){
+                    p.images.forEach((img, index) => {
+                        let checked = img.is_default ? 'checked' : '';
+                        $('#existingImages').append(`
+                            <div class="mr-2 mb-2 position-relative">
+                                <img src="${img.url}" class="img-thumbnail" style="height:70px;width:70px;object-fit:cover">
+                                <input type="radio" name="default_image" value="${index}" class="position-absolute" style="top:0;left:0" ${checked}>
+                            </div>
+                        `);
                     });
                 }
-                $('#existingImages').html(imagesHtml);
 
                 productModal.find('.modal-title').text('Edit Product');
                 productModal.modal('show');
@@ -238,75 +244,58 @@ $(document).ready(function () {
 
     $('#productForm').submit(function(e){
         e.preventDefault();
-        let formData = new FormData(this);
-        formData.append('_token', "{{ csrf_token() }}");
-
+        let formData=new FormData(this);
+        formData.append('_token',"{{ csrf_token() }}");
         $.ajax({
-            url: "{{ url('api/admin/add-edit-product') }}",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(res){
+            url:"{{ url('api/admin/add-edit-product') }}",
+            method:"POST",
+            data:formData,
+            processData:false,
+            contentType:false,
+            success:function(res){
                 productModal.modal('hide');
                 if(res.status){
-                    showMessage('success', res.message ?? 'Saved successfully');
+                    showMessage('success',res.message??'Saved successfully');
                     table.ajax.reload();
-                } else {
-                    showMessage('error', res.message ?? 'Something went wrong');
-                }
+                }else showMessage('error',res.message??'Something went wrong');
             },
-            error: function(xhr){
-                showMessage('error', xhr.responseJSON?.message ?? 'Something went wrong');
+            error:function(xhr){
+                showMessage('error',xhr.responseJSON?.message??'Something went wrong');
             }
         });
     });
 
-    $('#selectAll').click(function() {
-        let checked = $(this).prop('checked');
-        $('.rowCheckbox').prop('checked', checked);
+    $('#selectAll').click(function(){
+        $('.rowCheckbox').prop('checked',$(this).prop('checked'));
     });
 
-    function openDeleteModal(ids) {
-        idsToDelete = ids;
-        deleteModal.modal('show');
-    }
+    function openDeleteModal(ids){ idsToDelete=ids; deleteModal.modal('show'); }
 
-    $('#deleteSelected').click(function() {
-        let selectedIds = $('.rowCheckbox:checked').map(function(){ return $(this).val(); }).get();
-        if(selectedIds.length === 0){
-            selectAlertModal.modal('show');
-            return;
-        }
+    $('#deleteSelected').click(function(){
+        let selectedIds=$('.rowCheckbox:checked').map(function(){return $(this).val();}).get();
+        if(!selectedIds.length){ selectAlertModal.modal('show'); return; }
         openDeleteModal(selectedIds);
     });
 
-    $(document).on('click', '.singleDelete', function(){
-        openDeleteModal([$(this).data('id')]);
-    });
+    $(document).on('click','.singleDelete',function(){ openDeleteModal([$(this).data('id')]); });
 
     $('#confirmDeleteBtn').click(function(){
-        if(idsToDelete.length === 0) return;
+        if(!idsToDelete.length) return;
         $.ajax({
-            url: "{{ url('api/admin/delete-products') }}",
-            method: "POST",
-            data: { _token: "{{ csrf_token() }}", ids: idsToDelete },
-            success: function(res){
+            url:"{{ url('api/admin/delete-products') }}",
+            method:"POST",
+            data:{_token:"{{ csrf_token() }}",ids:idsToDelete},
+            success:function(res){
                 deleteModal.modal('hide');
                 if(res.status){
-                    showMessage('success', res.message ?? 'Deleted successfully');
-                    $('#selectAll').prop('checked', false);
+                    showMessage('success',res.message??'Deleted successfully');
+                    $('#selectAll').prop('checked',false);
                     table.ajax.reload();
-                } else {
-                    showMessage('error', res.message ?? 'Something went wrong');
-                }
+                }else showMessage('error',res.message??'Something went wrong');
             },
-            error: function(xhr){
-                showMessage('error', xhr.responseJSON?.message ?? 'Something went wrong');
-            }
+            error:function(xhr){ showMessage('error',xhr.responseJSON?.message??'Something went wrong'); }
         });
     });
-
 });
 </script>
 @endsection

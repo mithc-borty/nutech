@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductModel extends Model
 {
@@ -30,6 +31,11 @@ class ProductModel extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategoryModel::class, 'category_id');
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImageModel::class, 'product_id', 'id');
     }
 
     protected static function booted()
