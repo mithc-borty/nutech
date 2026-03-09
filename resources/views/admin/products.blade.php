@@ -144,6 +144,73 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="deleteImageConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Image Delete</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the selected image?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirmImageDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('CSS')
+<style>
+#imagePreviewContainer, #existingImages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.image-thumb {
+    position: relative;
+    display: inline-block;
+}
+.image-thumb img {
+    height: 70px;
+    width: 70px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.image-thumb input[type="radio"] {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+.image-thumb .delete-img {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.1s ease;
+}
+.image-thumb .delete-img:hover {
+    transform: scale(1.1);
+}
+</style>
 @endsection
 
 @section('JS')
@@ -153,6 +220,32 @@ $(document).ready(function(){
     let productModal=$('#productModal');
     let deleteModal=$('#deleteConfirmModal');
     let selectAlertModal=$('#selectAlertModal');
+
+    let imageToDelete = null;
+
+    $(document).on('click', '.delete-img', function(){
+        imageToDelete = $(this).closest('.image-thumb');
+        $('#deleteImageConfirmModal').modal('show');
+    });
+
+    $('#confirmImageDeleteBtn').click(function(){
+        if (!imageToDelete) return;
+
+        let deletedInputContainer = $('#deletedImagesContainer');
+
+        if (!deletedInputContainer.length) {
+            $('#productForm').append('<div id="deletedImagesContainer"></div>');
+            deletedInputContainer = $('#deletedImagesContainer');
+        }
+
+        deletedInputContainer.append(
+            `<input type="hidden" name="deleted_images[]" value="${imageToDelete.data('id')}">`
+        );
+
+        imageToDelete.remove();
+        $('#deleteImageConfirmModal').modal('hide');
+        imageToDelete = null;
+    });
 
     let table=$('#productsTable').DataTable({
         processing:true,
@@ -206,7 +299,7 @@ $(document).ready(function(){
         });
     });
 
-    $(document).on('click','.editProduct',function(){
+    $(document).on('click', '.editProduct', function(){
         let id = $(this).data('id');
         $.post("{{ url('api/admin/product-detail') }}", {_token:"{{ csrf_token() }}", id:id}, function(res){
             if(res.status){
@@ -218,17 +311,20 @@ $(document).ready(function(){
                 $('textarea[name=description]').val(p.description);
                 $('textarea[name=features]').val(Array.isArray(p.features) ? p.features.join("\n") : '');
                 $('textarea[name=specifications]').val(Array.isArray(p.specifications) ? p.specifications.join("\n") : '');
-                
+
                 $('#imagePreviewContainer').html('');
                 $('#existingImages').html('');
-
+                
+                $('#deletedImages').remove();
+                
                 if(p.images && Array.isArray(p.images)){
                     p.images.forEach((img, index) => {
                         let checked = img.is_default ? 'checked' : '';
                         $('#existingImages').append(`
-                            <div class="mr-2 mb-2 position-relative">
-                                <img src="${img.url}" class="img-thumbnail" style="height:70px;width:70px;object-fit:cover">
-                                <input type="radio" name="default_image" value="${index}" class="position-absolute" style="top:0;left:0" ${checked}>
+                            <div class="image-thumb mr-2 mb-2" data-id="${img.id}">
+                                <img src="${img.url}" class="img-thumbnail">
+                                <input type="radio" name="default_image" value="${index}" ${checked}>
+                                <button type="button" class="delete-img">&times;</button>
                             </div>
                         `);
                     });

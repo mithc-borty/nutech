@@ -747,6 +747,7 @@ class PrimaryController extends Controller
             'specifications' => 'nullable|array',
             'images.*'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'default_image'  => 'nullable|integer',
+            'deleted_images' => 'nullable|array',
         ];
 
         $request->merge([
@@ -780,6 +781,19 @@ class PrimaryController extends Controller
 
         $defaultIndex = intval($request->post('default_image', 0));
 
+        $deletedIds = $request->post('deleted_images', []);
+        if (!empty($deletedIds) && $id) {
+            $imagesToDelete = $product->images()
+                ->withoutGlobalScope('active')
+                ->whereIn('id', $deletedIds)
+                ->get();
+
+            foreach ($imagesToDelete as $img) {
+                Storage::disk('public')->delete('assets/images/product/'.$img->image);
+                $img->delete();
+            }
+        }
+
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $file) {
                 $filename = time().'_'.$file->getClientOriginalName();
@@ -792,14 +806,11 @@ class PrimaryController extends Controller
             }
         }
 
-        if ($id && $product->images()->count() > 0) {
-            $images = $product->images()->get();
-
-            $images->each(function($img, $index) use ($defaultIndex) {
-                $img->is_default = ($index === $defaultIndex);
-                $img->save();
-            });
-        }
+        $allImages = $product->images()->withoutGlobalScope('active')->get();
+        $allImages->each(function($img, $index) use ($defaultIndex) {
+            $img->is_default = ($index === $defaultIndex);
+            $img->save();
+        });
 
         return response()->json([
             'status'  => true,
