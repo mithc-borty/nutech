@@ -870,7 +870,7 @@ class PrimaryController extends Controller
             'sliders' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order'),
             'services' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order'),
             'clients' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order'),
-            'aboutStats' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order')
+            'aboutStats' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)
         ])->first();
 
         if ($frontSetting) {
@@ -918,7 +918,7 @@ class PrimaryController extends Controller
             'clients.*.client_name' => 'nullable|string|max:255',
             'clients.*.industry' => 'nullable|string|max:255',
             'clients.*.logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'about_stats' => 'nullable|string',
+            'front_setting.about_stats' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -1052,23 +1052,27 @@ class PrimaryController extends Controller
         }
 
         if (!empty($data['front_setting']['about_stats'])) {
-            $existingStats = $frontSetting->aboutStats ?? [];
-            foreach ($existingStats as $stat) {
-                $stat->delete();
-            }
+            $aboutStat = $frontSetting->aboutStats()->first();
+            $statsText = $data['front_setting']['about_stats'];
 
-            $frontSetting->aboutStats()->create([
-                'title' => null,
-                'about_stats' => $data['front_setting']['about_stats'],
-                'sort_order' => 0,
-                'is_blocked' => false,
-                'is_deleted' => false,
-            ]);
-        } else {
-            if (!empty($frontSetting->aboutStats)) {
-                foreach ($frontSetting->aboutStats as $stat) {
-                    $stat->delete();
-                }
+            if ($aboutStat) {
+                $aboutStat->update([
+                    'heading' => $data['front_setting']['about_heading'] ?? $aboutStat->heading,
+                    'description' => $data['front_setting']['about_desc'] ?? $aboutStat->description,
+                    'image' => $data['front_setting']['about_image'] ?? $aboutStat->image,
+                    'stats' => $statsText,
+                    'is_blocked' => false,
+                    'is_deleted' => false,
+                ]);
+            } else {
+                $frontSetting->aboutStats()->create([
+                    'heading' => $data['front_setting']['about_heading'] ?? null,
+                    'description' => $data['front_setting']['about_desc'] ?? null,
+                    'image' => $data['front_setting']['about_image'] ?? null,
+                    'stats' => $statsText,
+                    'is_blocked' => false,
+                    'is_deleted' => false,
+                ]);
             }
         }
 
@@ -1091,7 +1095,6 @@ class PrimaryController extends Controller
             'sliders' => $data['sliders'] ?? [],
             'services' => $data['services'] ?? [],
             'clients' => $data['clients'] ?? [],
-            'about_stats' => $data['front_setting']['about_stats'] ?? $frontSetting->about_stats,
         ]);
 
         return response()->json(['status' => true, 'message' => 'Front settings updated successfully']);

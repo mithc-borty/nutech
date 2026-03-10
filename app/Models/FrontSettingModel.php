@@ -49,7 +49,7 @@ class FrontSettingModel extends Model
 
     public function aboutStats()
     {
-        return $this->hasMany(FrontAboutStat::class, 'front_setting_id', 'id');
+        return $this->hasOne(FrontAboutStat::class, 'front_setting_id', 'id');
     }
 
     public function saveWithRelations(array $data)
@@ -88,20 +88,6 @@ class FrontSettingModel extends Model
                         'is_blocked' => $client['is_blocked'] ?? false,
                         'is_deleted' => $client['is_deleted'] ?? false,
                     ]));
-                }
-            }
-
-            if (!empty($data['about_stats'])) {
-                $this->aboutStats()->delete();
-                $stats = is_string($data['about_stats']) ? json_decode($data['about_stats'], true) : $data['about_stats'];
-                if (is_array($stats)) {
-                    foreach ($stats as $index => $stat) {
-                        $this->aboutStats()->create(array_merge($stat, [
-                            'sort_order' => $index,
-                            'is_blocked' => $stat['is_blocked'] ?? false,
-                            'is_deleted' => $stat['is_deleted'] ?? false,
-                        ]));
-                    }
                 }
             }
         });
@@ -169,9 +155,10 @@ class FrontAboutStat extends Model
     protected $table = 'front_about_stats';
     protected $fillable = [
         'front_setting_id',
-        'title',
-        'about_stats',
-        'sort_order',
+        'heading',
+        'description',
+        'image',     
+        'stats',
         'is_blocked',
         'is_deleted'
     ];

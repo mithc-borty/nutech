@@ -157,7 +157,6 @@ class PrimaryController extends Controller
                                     ->orderBy('sort_order'),
             'aboutStats' => fn($q) => $q->where('is_deleted', false)
                                         ->where('is_blocked', false)
-                                        ->orderBy('sort_order'),
         ])->first();
 
         $this->viewDataArr['frontSetting'] = $frontSetting;

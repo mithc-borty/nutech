@@ -73,9 +73,10 @@ return new class extends Migration
             $table->foreignId('front_setting_id')
                 ->constrained('front_settings')
                 ->cascadeOnDelete();
-            $table->string('title')->nullable();
-            $table->text('about_stats')->nullable();
-            $table->integer('sort_order')->default(0); 
+            $table->string('heading')->nullable();
+            $table->text('description')->nullable();
+            $table->string('image')->nullable();
+            $table->text('stats')->nullable();
             $table->boolean('is_blocked')->default(false);
             $table->boolean('is_deleted')->default(false);
             $table->timestamps();

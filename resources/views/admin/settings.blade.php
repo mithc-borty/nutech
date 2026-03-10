@@ -279,7 +279,22 @@ $(document).ready(function(){
             contentType:false,
             processData:false,
             success:function(res){ showMessage(res.status?'success':'error', res.message || "Updated successfully"); },
-            error:function(xhr){ let msg=xhr.responseJSON?.message||"Something went wrong!"; showMessage('error', msg); }
+            error: function(xhr) {
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON?.errors;
+                    let msg = '';
+                    if (errors) {
+                        msg = Object.values(errors).flat().join('<br>');
+                    } else {
+                        msg = "Validation failed!";
+                    }
+                    showMessage('error', msg);
+                } else {
+                    let msg = xhr.responseJSON?.message || "Something went wrong!";
+                    showMessage('error', msg);
+                }
+            }
+            
         });
     });
 
@@ -294,12 +309,12 @@ $(document).ready(function(){
                 $('textarea[name="front_setting[footer_text]"]').val(res.data.footer_text||'');
                 $('input[name="front_setting[about_heading]"]').val(res.data.about_heading||'');
                 $('textarea[name="front_setting[about_desc]"]').val(res.data.about_desc||'');
-                $('textarea[name="front_setting[about_stats]"]').val(res.data.about_stats||'');
+                $('textarea[name="front_setting[about_stats]"]').val(res.data.about_stats.stats||'');
                 $('input[name="front_setting[cta_heading]"]').val(res.data.cta_heading||'');
                 $('input[name="front_setting[cta_subheading]"]').val(res.data.cta_subheading||'');
                 $('input[name="front_setting[cta_btn_text]"]').val(res.data.cta_btn_text||'');
                 $('input[name="front_setting[cta_btn_url]"]').val(res.data.cta_btn_url||'');
-
+                
                 if(res.data.front_logo) $('#frontLogoPreview').attr('src',"{{ url('/') }}"+res.data.front_logo).show();
                 if(res.data.favicon) $('#faviconPreview').attr('src',"{{ url('/') }}"+res.data.favicon).show();
                 if(res.data.about_image) $('#aboutImagePreview').attr('src',"{{ url('/') }}"+res.data.about_image).show();
