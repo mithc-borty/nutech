@@ -875,18 +875,19 @@ class PrimaryController extends Controller
 
         if ($frontSetting) {
             $storagePath = '/storage/assets/images/front_setting/';
+
             if ($frontSetting->front_logo) $frontSetting->front_logo = $storagePath . $frontSetting->front_logo;
             if ($frontSetting->favicon) $frontSetting->favicon = $storagePath . $frontSetting->favicon;
             if ($frontSetting->about_image) $frontSetting->about_image = $storagePath . $frontSetting->about_image;
             if ($frontSetting->cta_bg_image) $frontSetting->cta_bg_image = $storagePath . $frontSetting->cta_bg_image;
 
             foreach ($frontSetting->sliders as $slider) {
-                if ($slider->first_half_image) $slider->first_half_image = $storagePath . 'sliders/' . $slider->first_half_image;
-                if ($slider->second_half_image) $slider->second_half_image = $storagePath . 'sliders/' . $slider->second_half_image;
+                if ($slider->first_half_image) $slider->first_half_image = $storagePath . $slider->first_half_image;
+                if ($slider->second_half_image) $slider->second_half_image = $storagePath . $slider->second_half_image;
             }
 
             foreach ($frontSetting->clients as $client) {
-                if ($client->logo) $client->logo = $storagePath . 'clients/' . $client->logo;
+                if ($client->logo) $client->logo = $storagePath . $client->logo;
             }
         }
 
@@ -948,33 +949,106 @@ class PrimaryController extends Controller
             if ($request->hasFile("front_setting.$field")) {
                 $file = $request->file("front_setting.$field");
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $file->storeAs('public/assets/images/front_setting', $filename);
+                $file->storeAs('assets/images/front_setting', $filename, 'public');
                 $data['front_setting'][$field] = $filename;
             }
         }
 
         if (!empty($data['sliders'])) {
-            foreach ($data['sliders'] as $i => $slider) {
+            $existingSliders = $frontSetting->sliders ?? [];
+            foreach ($data['sliders'] as $i => &$slider) {
                 foreach (['first_half_image', 'second_half_image'] as $imgField) {
+                    $oldFile = $existingSliders[$i]->$imgField ?? null;
                     if ($request->hasFile("sliders.$i.$imgField")) {
+                        if ($oldFile && Storage::disk('public')->exists('assets/images/front_setting/'.$oldFile)) {
+                            Storage::disk('public')->delete('assets/images/front_setting/'.$oldFile);
+                        }
                         $file = $request->file("sliders.$i.$imgField");
                         $filename = time() . '_' . $file->getClientOriginalName();
-                        $file->storeAs('public/assets/images/front_setting/sliders', $filename);
-                        $data['sliders'][$i][$imgField] = $filename;
+                        $file->storeAs('assets/images/front_setting', $filename, 'public');
+                        $slider[$imgField] = $filename;
+                    } else {
+                        $slider[$imgField] = $oldFile ?? null;
+                    }
+                }
+            }
+
+            if (count($existingSliders) > count($data['sliders'])) {
+                for ($j = count($data['sliders']); $j < count($existingSliders); $j++) {
+                    foreach (['first_half_image', 'second_half_image'] as $imgField) {
+                        $oldFile = $existingSliders[$j]->$imgField ?? null;
+                        if ($oldFile && Storage::disk('public')->exists('assets/images/front_setting/'.$oldFile)) {
+                            Storage::disk('public')->delete('assets/images/front_setting/'.$oldFile);
+                        }
                     }
                 }
             }
         }
 
-        if (!empty($data['clients'])) {
-            foreach ($data['clients'] as $i => $client) {
-                if ($request->hasFile("clients.$i.logo")) {
-                    $file = $request->file("clients.$i.logo");
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $file->storeAs('public/assets/images/front_setting/clients', $filename);
-                    $data['clients'][$i]['logo'] = $filename;
+        if (!empty($data['services'])) {
+            $existingServices = $frontSetting->services ?? [];
+            $servicesToSave = [];
+
+            foreach ($data['services'] as $i => $service) {
+                $servicesToSave[] = [
+                    'icon' => $service['icon'] ?? null,
+                    'title' => $service['title'] ?? null,
+                    'description' => $service['description'] ?? null,
+                ];
+            }
+
+            if (count($existingServices) > count($data['services'])) {
+                for ($j = count($data['services']); $j < count($existingServices); $j++) {
+                    $existingServices[$j]->delete();
                 }
             }
+
+            $data['services'] = $servicesToSave;
+        } else {
+            if (!empty($frontSetting->services)) {
+                foreach ($frontSetting->services as $service) {
+                    $service->delete();
+                }
+            }
+            $data['services'] = [];
+        }
+
+        if (!empty($data['clients'])) {
+            $existingClients = $frontSetting->clients ?? [];
+
+            foreach ($data['clients'] as $i => &$client) {
+                $oldFile = $existingClients[$i]->logo ?? null;
+                if ($request->hasFile("clients.$i.logo")) {
+                    if ($oldFile && Storage::disk('public')->exists('assets/images/front_setting/'.$oldFile)) {
+                        Storage::disk('public')->delete('assets/images/front_setting/'.$oldFile);
+                    }
+                    $file = $request->file("clients.$i.logo");
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->storeAs('assets/images/front_setting', $filename, 'public');
+                    $client['logo'] = $filename;
+                } else {
+                    $client['logo'] = $oldFile ?? null;
+                }
+            }
+
+            if (count($existingClients) > count($data['clients'])) {
+                for ($j = count($data['clients']); $j < count($existingClients); $j++) {
+                    $oldFile = $existingClients[$j]->logo ?? null;
+                    if ($oldFile && Storage::disk('public')->exists('assets/images/front_setting/'.$oldFile)) {
+                        Storage::disk('public')->delete('assets/images/front_setting/'.$oldFile);
+                    }
+                }
+            }
+        } else {
+            if (!empty($frontSetting->clients)) {
+                foreach ($frontSetting->clients as $client) {
+                    $oldFile = $client->logo ?? null;
+                    if ($oldFile && Storage::disk('public')->exists('assets/images/front_setting/'.$oldFile)) {
+                        Storage::disk('public')->delete('assets/images/front_setting/'.$oldFile);
+                    }
+                }
+            }
+            $data['clients'] = [];
         }
 
         $aboutStats = $data['about_stats'] ?? '';

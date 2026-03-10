@@ -211,7 +211,6 @@
 @section('JS')
 <script>
 $(document).ready(function(){
-
     function previewImage(input){
         let preview = $(input).data('preview');
         if(input.files && input.files[0]){
@@ -301,51 +300,69 @@ $(document).ready(function(){
                 $('input[name="front_setting[cta_btn_text]"]').val(res.data.cta_btn_text||'');
                 $('input[name="front_setting[cta_btn_url]"]').val(res.data.cta_btn_url||'');
 
-                if(res.data.front_logo) $('#frontLogoPreview').attr('src','/storage/'+res.data.front_logo).show();
-                if(res.data.favicon) $('#faviconPreview').attr('src','/storage/'+res.data.favicon).show();
-                if(res.data.about_image) $('#aboutImagePreview').attr('src','/storage/'+res.data.about_image).show();
-                if(res.data.cta_bg_image) $('#ctaBgPreview').attr('src','/storage/'+res.data.cta_bg_image).show();
+                if(res.data.front_logo) $('#frontLogoPreview').attr('src',"{{ url('/') }}"+res.data.front_logo).show();
+                if(res.data.favicon) $('#faviconPreview').attr('src',"{{ url('/') }}"+res.data.favicon).show();
+                if(res.data.about_image) $('#aboutImagePreview').attr('src',"{{ url('/') }}"+res.data.about_image).show();
+                if(res.data.cta_bg_image) $('#ctaBgPreview').attr('src',"{{ url('/') }}"+res.data.cta_bg_image).show();
 
-                let sliders=res.data.sliders||[];
+                let sliderTemplate = $('.slider-item:first').clone();
+                let serviceTemplate = $('.service-item:first').clone();
+                let clientTemplate = $('.client-item:first').clone();
+
+                let sliders = res.data.sliders || [];
                 if(sliders.length){
-                    $('#sliderContainer').empty();
+                    $('#sliderContainer').html(''); 
                     sliders.forEach((s,i)=>{
-                        let html=$('.slider-item:first').clone();
+                        let html = sliderTemplate.clone();
                         html.find('input[name*="[title]"]').val(s.title||'');
                         html.find('input[name*="[subtitle]"]').val(s.subtitle||'');
                         html.find('textarea[name*="[description]"]').val(s.description||'');
-                        if(s.first_half_image) html.find('.slider-first-half-preview').attr('src','/storage/'+s.first_half_image).show();
-                        if(s.second_half_image) html.find('.slider-second-half-preview').attr('src','/storage/'+s.second_half_image).show();
+                        if(s.first_half_image) html.find('.slider-first-half-preview').attr('src',"{{ url('/') }}"+s.first_half_image).show();
+                        if(s.second_half_image) html.find('.slider-second-half-preview').attr('src',"{{ url('/') }}"+s.second_half_image).show();
                         $('#sliderContainer').append(html);
-                        updateIndexes('#sliderContainer');
                     });
+                } else {
+                    let html = sliderTemplate.clone();
+                    html.find('input, textarea').val('');
+                    html.find('img').hide();
+                    $('#sliderContainer').html(html);
                 }
+                updateIndexes('#sliderContainer');
 
-                let services=res.data.services||[];
+                let services = res.data.services || [];
                 if(services.length){
-                    $('#servicesContainer').empty();
+                    $('#servicesContainer').html('');
                     services.forEach((s,i)=>{
-                        let html=$('.service-item:first').clone();
+                        let html = serviceTemplate.clone();
                         html.find('input[name*="[icon]"]').val(s.icon||'');
                         html.find('input[name*="[title]"]').val(s.title||'');
                         html.find('input[name*="[description]"]').val(s.description||'');
                         $('#servicesContainer').append(html);
-                        updateIndexes('#servicesContainer');
                     });
+                } else {
+                    let html = serviceTemplate.clone();
+                    html.find('input').val('');
+                    $('#servicesContainer').html(html);
                 }
+                updateIndexes('#servicesContainer');
 
-                let clients=res.data.clients||[];
+                let clients = res.data.clients || [];
                 if(clients.length){
-                    $('#clientsContainer').empty();
+                    $('#clientsContainer').html('');
                     clients.forEach((c,i)=>{
-                        let html=$('.client-item:first').clone();
+                        let html = clientTemplate.clone();
                         html.find('input[name*="[client_name]"]').val(c.client_name||'');
                         html.find('input[name*="[industry]"]').val(c.industry||'');
-                        if(c.logo) html.find('.client-logo-preview').attr('src','/storage/'+c.logo).show();
+                        if(c.logo) html.find('.client-logo-preview').attr('src',"{{ url('/') }}"+c.logo).show();
                         $('#clientsContainer').append(html);
-                        updateIndexes('#clientsContainer');
                     });
+                } else {
+                    let html = clientTemplate.clone();
+                    html.find('input').val('');
+                    html.find('img').hide();
+                    $('#clientsContainer').html(html);
                 }
+                updateIndexes('#clientsContainer');
             }
         }
     });
