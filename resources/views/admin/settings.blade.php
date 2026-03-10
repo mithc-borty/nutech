@@ -46,14 +46,14 @@
                                         </div>
                                         <div class="form-group img-container">
                                             <label>Front Logo</label>
-                                            <input type="file" name="front_setting[front_logo]" class="form-control-file image-input" data-preview="#frontLogoPreview">
+                                            <input type="file" name="front_setting[front_logo]" class="form-control-file image-input" data-preview="#frontLogoPreview" accept="image/*">
                                             <img id="frontLogoPreview" class="img-thumbnail mt-2" style="max-height:100px; display:none;">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group img-container">
                                             <label>Favicon</label>
-                                            <input type="file" name="front_setting[favicon]" class="form-control-file image-input" data-preview="#faviconPreview">
+                                            <input type="file" name="front_setting[favicon]" class="form-control-file image-input" data-preview="#faviconPreview" accept="image/*">
                                             <img id="faviconPreview" class="img-thumbnail mt-2" style="max-height:50px; display:none;">
                                         </div>
                                         <div class="form-group">
@@ -69,12 +69,12 @@
                                         <div class="row">
                                             <div class="col-md-4 img-container">
                                                 <label>First Half Image</label>
-                                                <input type="file" name="sliders[0][first_half_image]" class="form-control-file image-input" data-preview=".slider-first-half-preview">
+                                                <input type="file" name="sliders[0][first_half_image]" class="form-control-file image-input" data-preview=".slider-first-half-preview" accept="image/*">
                                                 <img class="slider-first-half-preview img-thumbnail mt-2" style="max-height:80px; display:none;">
                                             </div>
                                             <div class="col-md-4 img-container">
                                                 <label>Second Half Image</label>
-                                                <input type="file" name="sliders[0][second_half_image]" class="form-control-file image-input" data-preview=".slider-second-half-preview">
+                                                <input type="file" name="sliders[0][second_half_image]" class="form-control-file image-input" data-preview=".slider-second-half-preview" accept="image/*">
                                                 <img class="slider-second-half-preview img-thumbnail mt-2" style="max-height:80px; display:none;">
                                             </div>
                                             <div class="col-md-4">
@@ -127,7 +127,7 @@
                                             </div>
                                             <div class="col-md-4 img-container">
                                                 <label>Logo</label>
-                                                <input type="file" name="clients[0][logo]" class="form-control-file image-input" data-preview=".client-logo-preview">
+                                                <input type="file" name="clients[0][logo]" class="form-control-file image-input" data-preview=".client-logo-preview" accept="image/*">
                                                 <img class="client-logo-preview img-thumbnail mt-2" style="max-height:80px; display:none;">
                                             </div>
                                             <div class="col-md-4">
@@ -153,14 +153,14 @@
                                         </div>
                                         <div class="form-group img-container">
                                             <label>Image</label>
-                                            <input type="file" name="front_setting[about_image]" class="form-control-file image-input" data-preview="#aboutImagePreview">
+                                            <input type="file" name="front_setting[about_image]" class="form-control-file image-input" data-preview="#aboutImagePreview" accept="image/*">
                                             <img id="aboutImagePreview" class="img-thumbnail mt-2" style="max-height:100px; display:none;">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Overlay Text / Stats (JSON)</label>
-                                            <textarea name="about_stats" class="form-control" rows="6" placeholder='[{ "title": "500+ Projects", "icon": "fa-check" }, ...]'></textarea>
+                                            <label>Overlay Text / Stats</label>
+                                            <textarea name="front_setting[about_stats]" class="form-control" rows="6" placeholder="Enter overlay text or stats here"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -188,7 +188,7 @@
                                         </div>
                                         <div class="form-group img-container">
                                             <label>Background Image</label>
-                                            <input type="file" name="front_setting[cta_bg_image]" class="form-control-file image-input" data-preview="#ctaBgPreview">
+                                            <input type="file" name="front_setting[cta_bg_image]" class="form-control-file image-input" data-preview="#ctaBgPreview" accept="image/*">
                                             <img id="ctaBgPreview" class="img-thumbnail mt-2" style="max-height:100px; display:none;">
                                         </div>
                                     </div>
@@ -204,40 +204,8 @@
         </div>
     </section>
 </div>
-@endsection
 
-@section('CSS')
-<style>
-.img-wrapper {
-    position: relative;
-    display: inline-block;
-}
-.img-wrapper img {
-    display: block;
-    max-width: 100%;
-}
-.img-wrapper .remove-img {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    background-color: red;
-    color: white;
-    width: 20px;
-    height: 20px;
-    text-align: center;
-    line-height: 18px;
-    font-weight: bold;
-    font-size: 14px;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 10;
-    display: none;
-}
-.img-wrapper:hover .remove-img,
-.img-wrapper img[data-loaded="1"] ~ .remove-img {
-    display: block;
-}
-</style>
+<div id="toastContainer"></div>
 @endsection
 
 @section('JS')
@@ -249,26 +217,17 @@ $(document).ready(function(){
         if(input.files && input.files[0]){
             let reader = new FileReader();
             reader.onload = function(e){
-                let img;
-                if(preview.startsWith('#')){
-                    img = $(preview);
-                } else {
-                    img = $(input).closest('.img-container, .position-relative').find(preview);
-                }
+                let img = preview.startsWith('#') ? $(preview) : $(input).closest('.img-container').find(preview);
                 img.attr('src', e.target.result).show();
-                if(img.siblings('.remove-img').length === 0){
-                    img.parent().append('<span class="remove-img">&times;</span>');
-                }
+                if(img.siblings('.remove-img').length===0) img.parent().append('<span class="remove-img">&times;</span>');
             }
             reader.readAsDataURL(input.files[0]);
         }
     }
 
     $(document).on('change', '.image-input', function(){ previewImage(this); });
-
     $(document).on('click', '.remove-img', function(){
-        let img = $(this).siblings('img');
-        let fileInput = $(this).parent().find('input[type="file"]');
+        let img=$(this).siblings('img'), fileInput=$(this).parent().find('input[type="file"]');
         img.hide().attr('src','');
         fileInput.val('');
         $(this).remove();
@@ -277,81 +236,119 @@ $(document).ready(function(){
     function updateIndexes(container){
         $(container).children().each(function(index){
             $(this).find('input, textarea').each(function(){
-                let name = $(this).attr('name');
-                if(name){
-                    let updated = name.replace(/\[\d+\]/, `[${index}]`);
-                    $(this).attr('name', updated);
-                }
+                let name=$(this).attr('name');
+                if(name) $(this).attr('name', name.replace(/\[\d+\]/, `[${index}]`));
             });
         });
     }
 
     $('#addSlider').click(function(){
-        let html = $('.slider-item:first').clone();
+        let html=$('.slider-item:first').clone();
         html.find('input, textarea').val('');
         html.find('img').hide();
         html.find('.remove-img').remove();
         $('#sliderContainer').append(html);
         updateIndexes('#sliderContainer');
     });
-    $(document).on('click', '.remove-slider', function(){
-        $(this).closest('.slider-item').remove();
-        updateIndexes('#sliderContainer');
-    });
+    $(document).on('click', '.remove-slider', function(){ $(this).closest('.slider-item').remove(); updateIndexes('#sliderContainer'); });
 
     $('#addService').click(function(){
-        let html = $('.service-item:first').clone();
+        let html=$('.service-item:first').clone();
         html.find('input').val('');
         $('#servicesContainer').append(html);
         updateIndexes('#servicesContainer');
     });
-    $(document).on('click', '.remove-service', function(){
-        $(this).closest('.service-item').remove();
-        updateIndexes('#servicesContainer');
-    });
+    $(document).on('click', '.remove-service', function(){ $(this).closest('.service-item').remove(); updateIndexes('#servicesContainer'); });
 
     $('#addClient').click(function(){
-        let html = $('.client-item:first').clone();
+        let html=$('.client-item:first').clone();
         html.find('input').val('');
         html.find('img').hide();
         html.find('.remove-img').remove();
         $('#clientsContainer').append(html);
         updateIndexes('#clientsContainer');
     });
-    $(document).on('click', '.remove-client', function(){
-        $(this).closest('.client-item').remove();
-        updateIndexes('#clientsContainer');
-    });
+    $(document).on('click', '.remove-client', function(){ $(this).closest('.client-item').remove(); updateIndexes('#clientsContainer'); });
 
     $('#frontSettingsForm').submit(function(e){
         e.preventDefault();
-        let formData = new FormData(this);
+        let formData=new FormData(this);
         $.ajax({
-            url: '{{ url("api/admin/update-front-setting") }}',
-            method: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(res){
-                if(res.status){ alert(res.message || "Settings updated successfully"); }
-                else{ alert(res.message || "Something went wrong"); }
-            },
-            error: function(err){ alert("AJAX error, check console"); console.log(err); }
+            url:'{{ url("api/admin/update-front-setting") }}',
+            method:'POST',
+            data:formData,
+            contentType:false,
+            processData:false,
+            success:function(res){ showMessage(res.status?'success':'error', res.message || "Updated successfully"); },
+            error:function(xhr){ let msg=xhr.responseJSON?.message||"Something went wrong!"; showMessage('error', msg); }
         });
     });
 
     $.ajax({
-        url: '{{ url("api/admin/front-setting-detail") }}',
-        method: 'POST',
-        data: {_token: '{{ csrf_token() }}'},
-        success: function(res){
+        url:'{{ url("api/admin/front-setting-detail") }}',
+        method:'POST',
+        data:{_token:'{{ csrf_token() }}'},
+        success:function(res){
             if(res.status && res.data){
-                $('input[name="front_setting[site_title]"]').val(res.data.site_title || '');
-                $('textarea[name="front_setting[meta_description]"]').val(res.data.meta_description || '');
+                $('input[name="front_setting[site_title]"]').val(res.data.site_title||'');
+                $('textarea[name="front_setting[meta_description]"]').val(res.data.meta_description||'');
+                $('textarea[name="front_setting[footer_text]"]').val(res.data.footer_text||'');
+                $('input[name="front_setting[about_heading]"]').val(res.data.about_heading||'');
+                $('textarea[name="front_setting[about_desc]"]').val(res.data.about_desc||'');
+                $('textarea[name="front_setting[about_stats]"]').val(res.data.about_stats||'');
+                $('input[name="front_setting[cta_heading]"]').val(res.data.cta_heading||'');
+                $('input[name="front_setting[cta_subheading]"]').val(res.data.cta_subheading||'');
+                $('input[name="front_setting[cta_btn_text]"]').val(res.data.cta_btn_text||'');
+                $('input[name="front_setting[cta_btn_url]"]').val(res.data.cta_btn_url||'');
+
+                if(res.data.front_logo) $('#frontLogoPreview').attr('src','/storage/'+res.data.front_logo).show();
+                if(res.data.favicon) $('#faviconPreview').attr('src','/storage/'+res.data.favicon).show();
+                if(res.data.about_image) $('#aboutImagePreview').attr('src','/storage/'+res.data.about_image).show();
+                if(res.data.cta_bg_image) $('#ctaBgPreview').attr('src','/storage/'+res.data.cta_bg_image).show();
+
+                let sliders=res.data.sliders||[];
+                if(sliders.length){
+                    $('#sliderContainer').empty();
+                    sliders.forEach((s,i)=>{
+                        let html=$('.slider-item:first').clone();
+                        html.find('input[name*="[title]"]').val(s.title||'');
+                        html.find('input[name*="[subtitle]"]').val(s.subtitle||'');
+                        html.find('textarea[name*="[description]"]').val(s.description||'');
+                        if(s.first_half_image) html.find('.slider-first-half-preview').attr('src','/storage/'+s.first_half_image).show();
+                        if(s.second_half_image) html.find('.slider-second-half-preview').attr('src','/storage/'+s.second_half_image).show();
+                        $('#sliderContainer').append(html);
+                        updateIndexes('#sliderContainer');
+                    });
+                }
+
+                let services=res.data.services||[];
+                if(services.length){
+                    $('#servicesContainer').empty();
+                    services.forEach((s,i)=>{
+                        let html=$('.service-item:first').clone();
+                        html.find('input[name*="[icon]"]').val(s.icon||'');
+                        html.find('input[name*="[title]"]').val(s.title||'');
+                        html.find('input[name*="[description]"]').val(s.description||'');
+                        $('#servicesContainer').append(html);
+                        updateIndexes('#servicesContainer');
+                    });
+                }
+
+                let clients=res.data.clients||[];
+                if(clients.length){
+                    $('#clientsContainer').empty();
+                    clients.forEach((c,i)=>{
+                        let html=$('.client-item:first').clone();
+                        html.find('input[name*="[client_name]"]').val(c.client_name||'');
+                        html.find('input[name*="[industry]"]').val(c.industry||'');
+                        if(c.logo) html.find('.client-logo-preview').attr('src','/storage/'+c.logo).show();
+                        $('#clientsContainer').append(html);
+                        updateIndexes('#clientsContainer');
+                    });
+                }
             }
         }
     });
-
 });
 </script>
 @endsection

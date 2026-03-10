@@ -13,6 +13,7 @@ use App\Models\CountryModel;
 use App\Models\StateModel;
 use App\Models\ProductCategoryModel;
 use App\Models\ProductModel;
+use App\Models\FrontSettingModel;
 use Illuminate\Support\Facades\Auth;
 
 class PrimaryController extends Controller
@@ -140,9 +141,27 @@ class PrimaryController extends Controller
         return view('admin.add_edit_product', $this->viewDataArr);
     }
 
-    public function settings(Request $request): View
+    public function settings(): View
     {
-        $this->viewDataArr['active_page']   =   'settings';
+        $this->viewDataArr['active_page'] = 'settings';
+
+        $frontSetting = FrontSettingModel::with([
+            'sliders' => fn($q) => $q->where('is_deleted', false)
+                                    ->where('is_blocked', false)
+                                    ->orderBy('sort_order'),
+            'services' => fn($q) => $q->where('is_deleted', false)
+                                    ->where('is_blocked', false)
+                                    ->orderBy('sort_order'),
+            'clients' => fn($q) => $q->where('is_deleted', false)
+                                    ->where('is_blocked', false)
+                                    ->orderBy('sort_order'),
+            'aboutStats' => fn($q) => $q->where('is_deleted', false)
+                                        ->where('is_blocked', false)
+                                        ->orderBy('sort_order'),
+        ])->first();
+
+        $this->viewDataArr['frontSetting'] = $frontSetting;
+
         return view('admin.settings', $this->viewDataArr);
     }
 

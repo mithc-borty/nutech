@@ -873,6 +873,23 @@ class PrimaryController extends Controller
             'aboutStats' => fn($q) => $q->where('is_deleted', false)->where('is_blocked', false)->orderBy('sort_order')
         ])->first();
 
+        if ($frontSetting) {
+            $storagePath = '/storage/assets/images/front_setting/';
+            if ($frontSetting->front_logo) $frontSetting->front_logo = $storagePath . $frontSetting->front_logo;
+            if ($frontSetting->favicon) $frontSetting->favicon = $storagePath . $frontSetting->favicon;
+            if ($frontSetting->about_image) $frontSetting->about_image = $storagePath . $frontSetting->about_image;
+            if ($frontSetting->cta_bg_image) $frontSetting->cta_bg_image = $storagePath . $frontSetting->cta_bg_image;
+
+            foreach ($frontSetting->sliders as $slider) {
+                if ($slider->first_half_image) $slider->first_half_image = $storagePath . 'sliders/' . $slider->first_half_image;
+                if ($slider->second_half_image) $slider->second_half_image = $storagePath . 'sliders/' . $slider->second_half_image;
+            }
+
+            foreach ($frontSetting->clients as $client) {
+                if ($client->logo) $client->logo = $storagePath . 'clients/' . $client->logo;
+            }
+        }
+
         return response()->json([
             'status' => true,
             'data' => $frontSetting
@@ -881,8 +898,33 @@ class PrimaryController extends Controller
 
     public function updateFrontSetting(Request $request)
     {
-        $data = $request->all();
+        $validator = Validator::make($request->all(), [
+            'front_setting.site_title' => 'required|string|max:255',
+            'front_setting.meta_description' => 'nullable|string|max:500',
+            'front_setting.footer_text' => 'nullable|string|max:1000',
+            'front_setting.front_logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'front_setting.favicon' => 'nullable|mimes:ico,png,jpg,jpeg|max:512',
+            'front_setting.about_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'front_setting.cta_bg_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'sliders.*.first_half_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'sliders.*.second_half_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'sliders.*.title' => 'nullable|string|max:255',
+            'sliders.*.subtitle' => 'nullable|string|max:255',
+            'sliders.*.description' => 'nullable|string|max:500',
+            'services.*.icon' => 'nullable|string|max:100',
+            'services.*.title' => 'nullable|string|max:255',
+            'services.*.description' => 'nullable|string|max:500',
+            'clients.*.client_name' => 'nullable|string|max:255',
+            'clients.*.industry' => 'nullable|string|max:255',
+            'clients.*.logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'about_stats' => 'nullable|string',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $data = $request->all();
         $frontSetting = FrontSettingModel::firstOrCreate([], [
             'site_title' => null,
             'meta_description' => null,
@@ -902,40 +944,62 @@ class PrimaryController extends Controller
         ]);
 
         $fileFields = ['front_logo', 'favicon', 'about_image', 'cta_bg_image'];
-
         foreach ($fileFields as $field) {
-            if ($request->hasFile($field)) {
-                $file = $request->file($field);
-                $path = $file->store('public/assets/images/front_setting');
-                $data[$field] = str_replace('public/', 'storage/', $path);
+            if ($request->hasFile("front_setting.$field")) {
+                $file = $request->file("front_setting.$field");
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs('public/assets/images/front_setting', $filename);
+                $data['front_setting'][$field] = $filename;
             }
         }
 
+        if (!empty($data['sliders'])) {
+            foreach ($data['sliders'] as $i => $slider) {
+                foreach (['first_half_image', 'second_half_image'] as $imgField) {
+                    if ($request->hasFile("sliders.$i.$imgField")) {
+                        $file = $request->file("sliders.$i.$imgField");
+                        $filename = time() . '_' . $file->getClientOriginalName();
+                        $file->storeAs('public/assets/images/front_setting/sliders', $filename);
+                        $data['sliders'][$i][$imgField] = $filename;
+                    }
+                }
+            }
+        }
+
+        if (!empty($data['clients'])) {
+            foreach ($data['clients'] as $i => $client) {
+                if ($request->hasFile("clients.$i.logo")) {
+                    $file = $request->file("clients.$i.logo");
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->storeAs('public/assets/images/front_setting/clients', $filename);
+                    $data['clients'][$i]['logo'] = $filename;
+                }
+            }
+        }
+
+        $aboutStats = $data['about_stats'] ?? '';
         $frontSetting->saveWithRelations([
             'front_setting' => [
-                'site_title' => $data['site_title'] ?? $frontSetting->site_title,
-                'meta_description' => $data['meta_description'] ?? $frontSetting->meta_description,
-                'front_logo' => $data['front_logo'] ?? $frontSetting->front_logo,
-                'favicon' => $data['favicon'] ?? $frontSetting->favicon,
-                'footer_text' => $data['footer_text'] ?? $frontSetting->footer_text,
-                'about_heading' => $data['about_heading'] ?? $frontSetting->about_heading,
-                'about_desc' => $data['about_desc'] ?? $frontSetting->about_desc,
-                'about_image' => $data['about_image'] ?? $frontSetting->about_image,
-                'cta_heading' => $data['cta_heading'] ?? $frontSetting->cta_heading,
-                'cta_subheading' => $data['cta_subheading'] ?? $frontSetting->cta_subheading,
-                'cta_btn_text' => $data['cta_btn_text'] ?? $frontSetting->cta_btn_text,
-                'cta_btn_url' => $data['cta_btn_url'] ?? $frontSetting->cta_btn_url,
-                'cta_bg_image' => $data['cta_bg_image'] ?? $frontSetting->cta_bg_image,
+                'site_title' => $data['front_setting']['site_title'] ?? $frontSetting->site_title,
+                'meta_description' => $data['front_setting']['meta_description'] ?? $frontSetting->meta_description,
+                'front_logo' => $data['front_setting']['front_logo'] ?? $frontSetting->front_logo,
+                'favicon' => $data['front_setting']['favicon'] ?? $frontSetting->favicon,
+                'footer_text' => $data['front_setting']['footer_text'] ?? $frontSetting->footer_text,
+                'about_heading' => $data['front_setting']['about_heading'] ?? $frontSetting->about_heading,
+                'about_desc' => $data['front_setting']['about_desc'] ?? $frontSetting->about_desc,
+                'about_image' => $data['front_setting']['about_image'] ?? $frontSetting->about_image,
+                'cta_heading' => $data['front_setting']['cta_heading'] ?? $frontSetting->cta_heading,
+                'cta_subheading' => $data['front_setting']['cta_subheading'] ?? $frontSetting->cta_subheading,
+                'cta_btn_text' => $data['front_setting']['cta_btn_text'] ?? $frontSetting->cta_btn_text,
+                'cta_btn_url' => $data['front_setting']['cta_btn_url'] ?? $frontSetting->cta_btn_url,
+                'cta_bg_image' => $data['front_setting']['cta_bg_image'] ?? $frontSetting->cta_bg_image,
             ],
             'sliders' => $data['sliders'] ?? [],
             'services' => $data['services'] ?? [],
             'clients' => $data['clients'] ?? [],
-            'about_stats' => $data['about_stats'] ?? []
+            'about_stats' => $aboutStats
         ]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Front settings updated successfully'
-        ]);
+        return response()->json(['status' => true, 'message' => 'Front settings updated successfully']);
     }
 }

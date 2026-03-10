@@ -27,6 +27,11 @@ class FrontSettingModel extends Model
         'is_deleted',
     ];
 
+    protected $casts = [
+        'is_blocked' => 'boolean',
+        'is_deleted' => 'boolean',
+    ];
+
     public function sliders()
     {
         return $this->hasMany(FrontSlider::class, 'front_setting_id', 'id');
@@ -52,57 +57,51 @@ class FrontSettingModel extends Model
         DB::transaction(function () use ($data) {
             $this->fill($data['front_setting'] ?? []);
             $this->save();
-            $now = now();
 
             if (!empty($data['sliders'])) {
-                DB::table('front_sliders')->where('front_setting_id', $this->id)->delete();
-                foreach ($data['sliders'] as $slider) {
-                    DB::table('front_sliders')->insert(array_merge($slider, [
-                        'front_setting_id' => $this->id,
+                $this->sliders()->delete();
+                foreach ($data['sliders'] as $index => $slider) {
+                    $this->sliders()->create(array_merge($slider, [
+                        'sort_order' => $index,
                         'is_blocked' => $slider['is_blocked'] ?? false,
                         'is_deleted' => $slider['is_deleted'] ?? false,
-                        'created_at' => $now,
-                        'updated_at' => $now,
                     ]));
                 }
             }
 
             if (!empty($data['services'])) {
-                DB::table('front_services')->where('front_setting_id', $this->id)->delete();
-                foreach ($data['services'] as $service) {
-                    DB::table('front_services')->insert(array_merge($service, [
-                        'front_setting_id' => $this->id,
+                $this->services()->delete();
+                foreach ($data['services'] as $index => $service) {
+                    $this->services()->create(array_merge($service, [
+                        'sort_order' => $index,
                         'is_blocked' => $service['is_blocked'] ?? false,
                         'is_deleted' => $service['is_deleted'] ?? false,
-                        'created_at' => $now,
-                        'updated_at' => $now,
                     ]));
                 }
             }
 
             if (!empty($data['clients'])) {
-                DB::table('front_clients')->where('front_setting_id', $this->id)->delete();
-                foreach ($data['clients'] as $client) {
-                    DB::table('front_clients')->insert(array_merge($client, [
-                        'front_setting_id' => $this->id,
+                $this->clients()->delete();
+                foreach ($data['clients'] as $index => $client) {
+                    $this->clients()->create(array_merge($client, [
+                        'sort_order' => $index,
                         'is_blocked' => $client['is_blocked'] ?? false,
                         'is_deleted' => $client['is_deleted'] ?? false,
-                        'created_at' => $now,
-                        'updated_at' => $now,
                     ]));
                 }
             }
 
             if (!empty($data['about_stats'])) {
-                DB::table('front_about_stats')->where('front_setting_id', $this->id)->delete();
-                foreach ($data['about_stats'] as $stat) {
-                    DB::table('front_about_stats')->insert(array_merge($stat, [
-                        'front_setting_id' => $this->id,
-                        'is_blocked' => $stat['is_blocked'] ?? false,
-                        'is_deleted' => $stat['is_deleted'] ?? false,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ]));
+                $this->aboutStats()->delete();
+                $stats = is_string($data['about_stats']) ? json_decode($data['about_stats'], true) : $data['about_stats'];
+                if (is_array($stats)) {
+                    foreach ($stats as $index => $stat) {
+                        $this->aboutStats()->create(array_merge($stat, [
+                            'sort_order' => $index,
+                            'is_blocked' => $stat['is_blocked'] ?? false,
+                            'is_deleted' => $stat['is_deleted'] ?? false,
+                        ]));
+                    }
                 }
             }
         });
@@ -112,23 +111,73 @@ class FrontSettingModel extends Model
 class FrontSlider extends Model
 {
     protected $table = 'front_sliders';
-    protected $fillable = ['front_setting_id','first_half_image','second_half_image','title','subtitle','description','sort_order','is_blocked','is_deleted'];
+    protected $fillable = [
+        'front_setting_id',
+        'first_half_image',
+        'second_half_image',
+        'title',
+        'subtitle',
+        'description',
+        'sort_order',
+        'is_blocked',
+        'is_deleted'
+    ];
+    protected $casts = [
+        'is_blocked' => 'boolean',
+        'is_deleted' => 'boolean',
+    ];
 }
 
 class FrontService extends Model
 {
     protected $table = 'front_services';
-    protected $fillable = ['front_setting_id','icon','title','description','sort_order','is_blocked','is_deleted'];
+    protected $fillable = [
+        'front_setting_id',
+        'icon',
+        'title',
+        'description',
+        'sort_order',
+        'is_blocked',
+        'is_deleted'
+    ];
+    protected $casts = [
+        'is_blocked' => 'boolean',
+        'is_deleted' => 'boolean',
+    ];
 }
 
 class FrontClient extends Model
 {
     protected $table = 'front_clients';
-    protected $fillable = ['front_setting_id','client_name','logo','industry','sort_order','is_blocked','is_deleted'];
+    protected $fillable = [
+        'front_setting_id',
+        'client_name',
+        'logo',
+        'industry',
+        'sort_order',
+        'is_blocked',
+        'is_deleted'
+    ];
+    protected $casts = [
+        'is_blocked' => 'boolean',
+        'is_deleted' => 'boolean',
+    ];
 }
 
 class FrontAboutStat extends Model
 {
     protected $table = 'front_about_stats';
-    protected $fillable = ['front_setting_id','title','icon','value','sort_order','is_blocked','is_deleted'];
+    protected $fillable = [
+        'front_setting_id',
+        'title',
+        'icon',
+        'value',
+        'sort_order',
+        'is_blocked',
+        'is_deleted'
+    ];
+    protected $casts = [
+        'is_blocked' => 'boolean',
+        'is_deleted' => 'boolean',
+    ];
 }
