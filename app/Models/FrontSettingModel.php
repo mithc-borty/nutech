@@ -170,8 +170,7 @@ class FrontAboutStat extends Model
     protected $fillable = [
         'front_setting_id',
         'title',
-        'icon',
-        'value',
+        'about_stats',
         'sort_order',
         'is_blocked',
         'is_deleted'

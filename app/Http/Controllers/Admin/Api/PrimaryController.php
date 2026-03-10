@@ -1051,7 +1051,27 @@ class PrimaryController extends Controller
             $data['clients'] = [];
         }
 
-        $aboutStats = $data['about_stats'] ?? '';
+        if (!empty($data['front_setting']['about_stats'])) {
+            $existingStats = $frontSetting->aboutStats ?? [];
+            foreach ($existingStats as $stat) {
+                $stat->delete();
+            }
+
+            $frontSetting->aboutStats()->create([
+                'title' => null,
+                'about_stats' => $data['front_setting']['about_stats'],
+                'sort_order' => 0,
+                'is_blocked' => false,
+                'is_deleted' => false,
+            ]);
+        } else {
+            if (!empty($frontSetting->aboutStats)) {
+                foreach ($frontSetting->aboutStats as $stat) {
+                    $stat->delete();
+                }
+            }
+        }
+
         $frontSetting->saveWithRelations([
             'front_setting' => [
                 'site_title' => $data['front_setting']['site_title'] ?? $frontSetting->site_title,
@@ -1071,7 +1091,7 @@ class PrimaryController extends Controller
             'sliders' => $data['sliders'] ?? [],
             'services' => $data['services'] ?? [],
             'clients' => $data['clients'] ?? [],
-            'about_stats' => $aboutStats
+            'about_stats' => $data['front_setting']['about_stats'] ?? $frontSetting->about_stats,
         ]);
 
         return response()->json(['status' => true, 'message' => 'Front settings updated successfully']);

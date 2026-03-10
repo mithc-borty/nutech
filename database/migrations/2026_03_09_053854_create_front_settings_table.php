@@ -70,11 +70,12 @@ return new class extends Migration
 
         Schema::create('front_about_stats', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('front_setting_id')->constrained('front_settings')->cascadeOnDelete();
+            $table->foreignId('front_setting_id')
+                ->constrained('front_settings')
+                ->cascadeOnDelete();
             $table->string('title')->nullable();
-            $table->string('icon')->nullable();
-            $table->integer('value')->nullable();
-            $table->integer('sort_order')->default(0);
+            $table->text('about_stats')->nullable();
+            $table->integer('sort_order')->default(0); 
             $table->boolean('is_blocked')->default(false);
             $table->boolean('is_deleted')->default(false);
             $table->timestamps();
