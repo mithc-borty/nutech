@@ -1,5 +1,4 @@
 @extends('front.layout')
-@section('title', 'Contact Us - Nutech Office System Pvt. Ltd.')
 @section('content')
 
 <div class="container-fluid py-5">

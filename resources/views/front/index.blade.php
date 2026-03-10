@@ -1,5 +1,4 @@
 @extends('front.layout')
-@section('title', 'Nutech Office System Pvt. Ltd. | Modular Furniture Manufacturer Kolkata')
 @section('content')
 
 @php
@@ -24,26 +23,36 @@ $slides = [
 @endphp
 
 <div class="header-carousel owl-carousel overflow-hidden">
-    @foreach ($slides as $slide)
+    @foreach ($sliders as $slide)
         <div class="header-carousel-item hero-section position-relative" 
-             style="background-image: url('<?php echo asset('products/' . $slide['first_half_bg']) ?>');">
+             style="background-image: url('<?php echo url('storage/assets/images/front_setting/' . $slide->first_half_image) ?>');">
 
-            <!-- Right half overlay -->
+            <!-- Right half overlay / separator design -->
             <div class="{{ $loop->first ? 'hero-bg-half-1' : 'hero-bg-half-2' }}" 
-                 style="background-image: url('<?php echo asset('products/' . $slide['second_half_bg']) ?>');">
+                 style="background-image: url('<?php echo url('storage/assets/images/front_setting/' . $slide->second_half_image)  ?>');">
             </div>
 
-            <!-- Optional shape overlay -->
-            <div class="{{ $slide['shape'] }}"></div>
+            <!-- Static shape overlay -->
+            @if($loop->first)
+                <div class="hero-shape-1"></div>
+            @else
+                <div class="hero-shape-2"></div>
+            @endif
 
-            <!-- Text confined to left side (first-half only) -->
+            <!-- Text content -->
             <div class="carousel-caption hero-left">
                 <div class="container h-100">
                     <div class="row h-100 align-items-center">
                         <div class="col-12 col-lg-10 col-xl-8">
-                            <h4 class="text-white text-uppercase fw-bold mb-4">{{ $slide['subtitle'] }}</h4>
-                            <h1 class="display-2 text-white mb-4">{{ $slide['title'] }}</h1>
-                            <p class="mb-5 fs-5">{{ $slide['desc'] }}</p>
+                            @if(!empty($slide->subtitle))
+                                <h4 class="text-white text-uppercase fw-bold mb-4">{{ $slide->subtitle }}</h4>
+                            @endif
+                            @if(!empty($slide->title))
+                                <h1 class="display-2 text-white mb-4">{{ $slide->title }}</h1>
+                            @endif
+                            @if(!empty($slide->desc))
+                                <p class="mb-5 fs-5">{{ $slide->desc }}</p>
+                            @endif
                             <div class="d-flex flex-wrap justify-content-start mb-4">
                                 <a class="btn btn-light py-3 px-4 px-md-5 me-2" href="{{ url('/products') }}">Explore Products</a>
                                 <a class="btn btn-primary py-3 px-4 px-md-5 ms-2" href="{{ url('/contact') }}">Get a Quote</a>

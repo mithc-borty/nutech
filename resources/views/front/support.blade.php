@@ -1,7 +1,4 @@
 @extends('front.layout')
-
-@section('title', $company_name . ' | Support')
-
 @section('content')
 
 <!-- Page Header -->

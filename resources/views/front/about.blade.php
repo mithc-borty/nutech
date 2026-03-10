@@ -1,5 +1,4 @@
 @extends('front.layout')
-@section('title', 'About Nutech Office System Pvt. Ltd.')
 @section('content')
 
 <!-- About Section Start -->

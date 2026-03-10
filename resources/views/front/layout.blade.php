@@ -2,7 +2,7 @@
 <html lang="en">
    <head>
       <meta charset="utf-8">
-      <title>@yield('title', 'Nutech Office System Pvt. Ltd.')</title>
+      <title>{{ $frontSetting->site_title ?? 'Nutech Office System Pvt. Ltd.' }}-{{ $page_title ?? '' }}</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="keywords" content="@yield('keywords', '')">
       <meta name="description" content="@yield('description', '')">
@@ -28,7 +28,9 @@
             <div class="d-flex align-items-center h-100">
                <a href="{{ url('/') }}" class="navbar-brand d-flex align-items-center anchor-logo">
                   <!-- Logo Image -->
-                  <img src="{{ asset('front/img/logo.jpg') }}" alt="Nutech Logo" class="logo">
+                  <img src="{{ url('storage/assets/images/front_setting/' . ($frontSetting->front_logo ?? 'logo.jpg')) }}" 
+     alt="{{ $frontSetting->site_title ?? 'Nutech Logo' }}" 
+     class="logo">
                </a>
             </div>
             <div class="w-100 h-100">
@@ -53,24 +55,11 @@
                      <div class="col-lg-4 text-center text-lg-end">
                         <div class="d-flex justify-content-end align-items-center">
                            <!-- Social Icons -->
-                           <div class="d-flex border-end border-primary pe-3">
+                           <div class="d-flex border-primary pe-3">
                               <a class="btn p-0 text-primary me-3" href="#"><i class="fab fa-facebook-f"></i></a>
                               <a class="btn p-0 text-primary me-3" href="#"><i class="fab fa-twitter"></i></a>
                               <a class="btn p-0 text-primary me-3" href="#"><i class="fab fa-instagram"></i></a>
                               <a class="btn p-0 text-primary me-0" href="#"><i class="fab fa-linkedin-in"></i></a>
-                           </div>
-                           <!-- Language Dropdown -->
-                           <div class="dropdown ms-3">
-                              <a href="#" class="dropdown-toggle text-white" data-bs-toggle="dropdown" role="button" aria-expanded="false">
-                              <small class="text-body"><i class="fas fa-globe-europe text-primary me-2"></i> English</small>
-                              </a>
-                              <ul class="dropdown-menu">
-                                 <li><a class="dropdown-item" href="#">English</a></li>
-                                 <li><a class="dropdown-item" href="#">Bangla</a></li>
-                                 <li><a class="dropdown-item" href="#">French</a></li>
-                                 <li><a class="dropdown-item" href="#">Spanish</a></li>
-                                 <li><a class="dropdown-item" href="#">Arabic</a></li>
-                              </ul>
                            </div>
                         </div>
                      </div>
@@ -80,9 +69,6 @@
                <div class="nav-bar px-0 py-lg-0" style="height: 80px;">
                   <nav class="navbar navbar-expand-lg navbar-light d-flex justify-content-lg-end">
                      <a href="{{ url('/') }}" class="navbar-brand-2">
-                        <h1 class="text-primary mb-0">
-                           <i class="fas fa-building"></i> Nutech
-                        </h1>
                      </a>
                      <button class="navbar-toggler" type="button"
                         data-bs-toggle="collapse"

@@ -1,7 +1,4 @@
 @extends('front.layout')
-
-@section('title', 'Request a Quote | Nutech Office System Pvt. Ltd.')
-
 @section('content')
 
 <!-- Page Header -->

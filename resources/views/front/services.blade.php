@@ -1,5 +1,4 @@
 @extends('front.layout')
-@section('title', 'Nutech Office System Pvt. Ltd. - Services')
 @section('content')
 
 <!-- Page Header -->

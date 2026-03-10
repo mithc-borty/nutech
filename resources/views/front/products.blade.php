@@ -1,5 +1,4 @@
 @extends('front.layout')
-@section('title', 'Nutech Office System Pvt. Ltd. - Full Product Range')
 @section('content')
 
 <div class="container-fluid bg-breadcrumb">
