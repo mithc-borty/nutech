@@ -28,9 +28,7 @@
             <div class="d-flex align-items-center h-100">
                <a href="{{ url('/') }}" class="navbar-brand d-flex align-items-center anchor-logo">
                   <!-- Logo Image -->
-                  <img src="{{ url('storage/assets/images/front_setting/' . ($frontSetting->front_logo ?? 'logo.jpg')) }}" 
-     alt="{{ $frontSetting->site_title ?? 'Nutech Logo' }}" 
-     class="logo">
+                  <img src="{{ $frontSetting && $frontSetting->front_logo? url('storage/assets/images/front_setting/' . $frontSetting->front_logo) : asset('front/img/logo.jpg') }}" alt="{{ $frontSetting->site_title ?? 'Nutech Logo' }}" class="logo">
                </a>
             </div>
             <div class="w-100 h-100">

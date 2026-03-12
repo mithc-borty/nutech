@@ -4,10 +4,19 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PrimaryController AS AdminPrimaryController;
 use App\Http\Controllers\Front\PrimaryController AS FrontPrimaryController;
 use App\Enums\UserTypeEnums;
+use Illuminate\Support\Facades\Artisan;
 
 /* Route::get('/', function () {
     return view('welcome');
 }); */
+
+Route::get('/clear-all', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+    return 'Cleared!';
+});
 
 Route::get('/', [FrontPrimaryController::class, 'index']);
 Route::get('/about', [FrontPrimaryController::class, 'about']);

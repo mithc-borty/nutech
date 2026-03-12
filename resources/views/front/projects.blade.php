@@ -1,8 +1,18 @@
 @extends('front.layout')
 
-@section('title', $company_name . ' | Projects')
+@section('title', $site_title . ' | Projects')
 
 @section('content')
+
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h4 class="text-white display-4 mb-4 wow fadeInDown">Projects</h4>
+        <ol class="breadcrumb d-flex justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ url('/') }}">Home</a></li>
+            <li class="breadcrumb-item active text-primary">Projects</li>
+        </ol>    
+    </div>
+</div>
 
 <div class="container-fluid bg-light py-5">
     <div class="container text-center">
@@ -24,7 +34,7 @@
     </div>
 </div>
 
-<div class="container py-5 bg-light">
+{{-- <div class="container py-5 bg-light">
     <div class="text-center mb-5">
         <h2 class="fw-bold">Project Categories</h2>
         <p>Industries and environments where our solutions are implemented</p>
@@ -42,9 +52,9 @@
             </div>
         @endforeach
     </div>
-</div>
+</div>--}}
 
-<div class="container py-5">
+{{--<div class="container py-5">
     <div class="text-center mb-5">
         <h2 class="fw-bold">Our Projects Portfolio</h2>
         <p>Explore our recent projects with customized workspace solutions</p>
@@ -68,9 +78,9 @@
     <div class="mt-4 text-center">
         {{ $projects->links() }}
     </div>
-</div>
+</div>--}}
 
-<div class="container py-5">
+{{--<div class="container py-5">
     <div class="text-center mb-5">
         <h2 class="fw-bold">Major Client Segments</h2>
         <p>Trusted by leading organizations and institutions</p>
@@ -85,9 +95,9 @@
             </div>
         @endforeach
     </div>
-</div>
+</div>--}}
 
-<div class="container-fluid bg-light py-5">
+{{--<div class="container-fluid bg-light py-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="fw-bold">Project Execution Process</h2>
@@ -101,7 +111,7 @@
             @endforeach
         </div>
     </div>
-</div>
+</div>--}}
 
 <div class="container py-5 text-center">
     <h3 class="fw-bold mb-3">Planning a New Office Project?</h3>

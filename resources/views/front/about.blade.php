@@ -1,6 +1,16 @@
 @extends('front.layout')
 @section('content')
 
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h4 class="text-white display-4 mb-4 wow fadeInDown">About Us</h4>
+        <ol class="breadcrumb d-flex justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ url('/') }}">Home</a></li>
+            <li class="breadcrumb-item active text-primary">About Us</li>
+        </ol>    
+    </div>
+</div>
+
 <!-- About Section Start -->
 <div class="container-fluid about bg-light py-5">
     <div class="container py-5">

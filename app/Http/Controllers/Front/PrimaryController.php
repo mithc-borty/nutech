@@ -14,25 +14,26 @@ class PrimaryController extends Controller
 
     public function __construct()
     {
-         $frontSetting = FrontSettingModel::first();
-
-            $this->viewDataArr['frontSetting'] = $frontSetting;
-
-            $this->viewDataArr['site_title']   = $frontSetting->site_title ?? 'Nutech Office System Pvt. Ltd.';
-            $this->viewDataArr['logo']         = $frontSetting->front_logo ?? 'front/img/logo.jpg';
-            $this->viewDataArr['favicon']      = $frontSetting->favicon ?? 'front/img/favicon.ico';
-            $this->viewDataArr['meta_description'] = $frontSetting->meta_description ?? '';
-            $this->viewDataArr['footer_text']  = $frontSetting->footer_text ?? '';
+        $frontSetting = FrontSettingModel::first();
+        $this->viewDataArr['frontSetting'] = $frontSetting;
+        $this->viewDataArr['site_title']      = $frontSetting->site_title ?? 'Nutech Office System Pvt. Ltd.';
+        $this->viewDataArr['logo']            = $frontSetting->front_logo ?? 'front/img/logo.jpg';
+        $this->viewDataArr['favicon']         = $frontSetting->favicon ?? 'front/img/favicon.ico';
+        $this->viewDataArr['meta_description'] = $frontSetting->meta_description ?? '';
+        $this->viewDataArr['footer_text']     = $frontSetting->footer_text ?? '';
     }
 
     public function index(): View
     {
         $this->viewDataArr['active_page'] = 'home';
         $this->viewDataArr['page_title'] = 'Home';
-        $this->viewDataArr['sliders'] = $this->viewDataArr['frontSetting']->sliders()->
-                                    where('is_deleted', false)->
-                                    where('is_blocked', false)->
-                                    orderBy('sort_order')->get();
+        $this->viewDataArr['sliders'] = $this->viewDataArr['frontSetting']
+            ? $this->viewDataArr['frontSetting']->sliders()
+                ->where('is_deleted', false)
+                ->where('is_blocked', false)
+                ->orderBy('sort_order')
+                ->get()
+            : collect();
         return view('front.index', $this->viewDataArr);
     }
 
@@ -40,9 +41,12 @@ class PrimaryController extends Controller
     {
         $this->viewDataArr['active_page'] = 'about';
         $this->viewDataArr['page_title'] = 'About Us';
-        $this->viewDataArr['aboutStats'] = $this->viewDataArr['frontSetting']->
-                                            aboutStats()->where('is_deleted', false)->
-                                            where('is_blocked', false)->get();
+        $this->viewDataArr['aboutStats'] = $this->viewDataArr['frontSetting']
+            ? $this->viewDataArr['frontSetting']->aboutStats()
+                ->where('is_deleted', false)
+                ->where('is_blocked', false)
+                ->get()
+            : collect();
         return view('front.about', $this->viewDataArr);
     }
 
@@ -50,13 +54,11 @@ class PrimaryController extends Controller
     {
         $this->viewDataArr['active_page'] = 'products';
         $this->viewDataArr['page_title'] = 'Products';
-
         $this->viewDataArr['products'] = ProductModel::with('category', 'images')
             ->where('is_blocked', false)
             ->where('is_deleted', false)
             ->orderBy('created_at', 'desc')
             ->paginate(12);
-
         return view('front.products', $this->viewDataArr);
     }
 

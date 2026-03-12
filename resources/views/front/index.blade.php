@@ -1,27 +1,6 @@
 @extends('front.layout')
 @section('content')
 
-@php
-$slides = [
-    [
-        'first_half_bg' => 'conference-table-hq.png', 
-        'second_half_bg' => 'designer-office-furniture-hq.png', 
-        'shape' => 'hero-shape-1', 
-        'title' => 'Innovative Modular Office & Workspace Solutions',
-        'subtitle' => 'Manufacturer • Supplier • Interior Planner Since 2007',
-        'desc' => 'Nutech Office System Pvt. Ltd. specializes in high-quality modular workstations, executive tables, and customized partitions for corporate, banking, and educational sectors.'
-    ],
-    [
-        'first_half_bg' => 'full-height-office-partition-hq.png', 
-        'second_half_bg' => 'work-station-hq.png', 
-        'shape' => 'hero-shape-2', 
-        'title' => 'Ergonomic Designs for Productive Environments',
-        'subtitle' => 'Trusted by ITC, Tata Steel, SBI & More',
-        'desc' => 'Transforming workspaces with AutoCAD-driven planning and 3D visualization. We deliver durable, space-efficient furniture with a focus on timely project execution.'
-    ]
-];
-@endphp
-
 <div class="header-carousel owl-carousel overflow-hidden">
     @foreach ($sliders as $slide)
         <div class="header-carousel-item hero-section position-relative" 
@@ -43,25 +22,32 @@ $slides = [
             <div class="carousel-caption hero-left">
                 <div class="container h-100">
                     <div class="row h-100 align-items-center">
-                        <div class="col-12 col-lg-10 col-xl-8">
-                            @if(!empty($slide->subtitle))
-                                <h4 class="text-white text-uppercase fw-bold mb-4">{{ $slide->subtitle }}</h4>
-                            @endif
-                            @if(!empty($slide->title))
-                                <h1 class="display-2 text-white mb-4">{{ $slide->title }}</h1>
-                            @endif
-                            @if(!empty($slide->desc))
-                                <p class="mb-5 fs-5">{{ $slide->desc }}</p>
-                            @endif
-                            <div class="d-flex flex-wrap justify-content-start mb-4">
-                                <a class="btn btn-light py-3 px-4 px-md-5 me-2" href="{{ url('/products') }}">Explore Products</a>
-                                <a class="btn btn-primary py-3 px-4 px-md-5 ms-2" href="{{ url('/contact') }}">Get a Quote</a>
+                        <div class="col-12 col-lg-6"> <!-- limit to first-half width -->
+                            <div class="first-half-caption">
+                                @if(!empty($slide->title))
+                                    <h1 class="text-white fw-bold mb-3" style="font-size: 3rem; line-height: 1.2; text-transform: uppercase;">
+                                        {{ $slide->title }}
+                                    </h1>
+                                @endif
+                                @if(!empty($slide->subtitle))
+                                    <h3 class="text-white fw-semibold mb-4" style="font-size: 1.75rem; line-height: 1.3; text-transform: uppercase;">
+                                        {{ $slide->subtitle }}
+                                    </h3>
+                                @endif
+                                @if(!empty($slide->desc))
+                                    <p class="text-white mb-5 fs-5" style="font-size: 1.1rem; line-height: 1.6;">
+                                        {{ $slide->desc }}
+                                    </p>
+                                @endif
+                                <div class="d-flex flex-wrap justify-content-start mb-4">
+                                    <a class="btn btn-light py-3 px-4 px-md-5 me-2" href="{{ url('/products') }}">Explore Products</a>
+                                    <a class="btn btn-primary py-3 px-4 px-md-5 ms-2" href="{{ url('/contact') }}">Get a Quote</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     @endforeach
 </div>
