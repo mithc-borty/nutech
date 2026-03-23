@@ -28,6 +28,7 @@ class PrimaryController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+            'remember' => 'sometimes|boolean',
         ]);
 
         $user = UserModel::where('email', $request->email)
@@ -50,7 +51,8 @@ class PrimaryController extends Controller
             ], 403);
         }
 
-        Auth::login($user);
+        $remember = $request->boolean('remember', false);
+        Auth::login($user, $remember);
         session()->regenerate();
 
         return response()->json([

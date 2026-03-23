@@ -64,36 +64,38 @@
 $(document).ready(function () {
 
     $("#loginForm").validate({
-        errorElement: 'span',
-        errorPlacement: function(error, element) {
-            error.addClass('invalid-feedback');
-            element.closest('.input-group').append(error);
-        },
-        highlight: function(element) { $(element).addClass('is-invalid'); },
-        unhighlight: function(element) { $(element).removeClass('is-invalid'); },
-        submitHandler: function(form) {
-            let data = $(form).serialize();
-            $.ajax({
-                url: "{{ url('api/admin/login') }}",
-                method: "POST",
-                data: data,
-                success: function(response) {
-                    if(response.status) {
-                        showMessage('success', response.message);
-                        setTimeout(() => window.location.href = "{{ url('admin') }}", 1000);
-                    } else {
-                        showMessage('error', response.message);
-                    }
-                },
-                error: function(xhr) {
-                    let err = xhr.responseJSON;
-                    if(err && err.message) showMessage('error', err.message);
-                    else showMessage('error', 'Something went wrong!');
-                }
-            });
-            return false;
-        }
-    });
+      errorElement: 'span',
+      errorPlacement: function(error, element) {
+         error.addClass('invalid-feedback');
+         element.closest('.input-group').append(error);
+      },
+      highlight: function(element) { $(element).addClass('is-invalid'); },
+      unhighlight: function(element) { $(element).removeClass('is-invalid'); },
+      submitHandler: function(form) {
+         let data = $(form).serializeArray().filter(d => d.name !== 'remember');
+         data.push({ name: 'remember', value: $('#remember').is(':checked') ? '1' : '0' });
+
+         $.ajax({
+               url: "{{ url('api/admin/login') }}",
+               method: "POST",
+               data: $.param(data),
+               success: function(response) {
+                  if(response.status) {
+                     showMessage('success', response.message);
+                     setTimeout(() => window.location.href = "{{ url('admin') }}", 1000);
+                  } else {
+                     showMessage('error', response.message);
+                  }
+               },
+               error: function(xhr) {
+                  let err = xhr.responseJSON;
+                  if(err && err.message) showMessage('error', err.message);
+                  else showMessage('error', 'Something went wrong!');
+               }
+         });
+         return false;
+      }
+   });
 
 });
 </script>

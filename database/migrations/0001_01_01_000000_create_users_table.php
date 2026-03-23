@@ -54,11 +54,12 @@ return new class extends Migration
             $table->integer('nationality_id')->nullable();
             $table->string('profile_image')->nullable();
 
+            $table->rememberToken();
+            
             $table->boolean('is_active')->default(true);
             $table->boolean('is_blocked')->default(false);
             $table->boolean('is_deleted')->default(false);
 
-            $table->rememberToken();
             $table->timestamps();
         });
 

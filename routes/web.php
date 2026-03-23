@@ -32,7 +32,7 @@ Route::prefix('admin')->middleware('web')->group(function () {
     Route::get('forgot-password', [AdminPrimaryController::class, 'forgotPassword'])->name('admin.forgot_password');
     Route::get('recover-password', [AdminPrimaryController::class, 'recoverPassword'])->name('admin.recover_password');
 
-    Route::middleware(['admin.auth:' . UserTypeEnums::admin->value . ',' . UserTypeEnums::super_admin->value])->group(function () {
+    Route::middleware(['admin.remember', 'admin.auth:' . UserTypeEnums::admin->value . ',' . UserTypeEnums::super_admin->value])->group(function () {
         Route::get('/', [AdminPrimaryController::class, 'dashboard']);
         Route::get('dashboard', [AdminPrimaryController::class, 'dashboard']);
         Route::get('users', [AdminPrimaryController::class, 'users']);
