@@ -17,12 +17,23 @@ use App\Models\ProductCategoryModel;
 use App\Models\ProductModel;
 use App\Models\ProductImageModel;
 use App\Models\FrontSettingModel;
-use App\Models\PasswordResetToken;
+use App\Models\PasswordResetTokenModel;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use App\Mail\GeneralMail;
 
 class PrimaryController extends Controller
 {
+    protected UserModel $user;
+
+    public function __construct()
+    {
+        $this->user = Auth::user();
+        if (!$this->user instanceof UserModel) {
+            throw new \RuntimeException('Authenticated user is not a valid UserModel instance.');
+        }
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -79,27 +90,32 @@ class PrimaryController extends Controller
         ]);
     }
 
-    /* public function forgotPassword(Request $request)
+    public function forgotPassword(Request $request)
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
 
         $token = Str::random(64);
+        $otp = rand(100000, 999999);
 
-        PasswordResetToken::updateOrCreate(
+        PasswordResetTokenModel::updateOrCreate(
             ['email' => $request->email],
             [
                 'token' => $token,
-                'created_at' => now()
+                'otp_code' => $otp,
+                'expires_at' => now()->addMinutes(30),
             ]
         );
 
-        // Send reset email
-        Mail::raw("Your password reset token: $token", function ($message) use ($request) {
-            $message->to($request->email)
-                ->subject('Password Reset');
-        });
+        $resetUrl = url("admin/recover-password/{$token}");
+
+        $subject = "Password Recovery Request";
+        $body = "You requested a password reset. Use the OTP below or click the button to reset your password. This will expire in 30 minutes.";
+
+        Mail::to($request->email)->send(
+            new GeneralMail($subject, $body, $resetUrl, 'Reset Password', $otp)
+        );
 
         return response()->json([
             'status' => true,
@@ -111,18 +127,31 @@ class PrimaryController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'token' => 'required|string',
-            'password' => 'required|string|min:6|confirmed'
+            'password' => 'required|string|min:6|confirmed',
+            'token' => 'nullable|string',
+            'otp' => 'nullable|digits:6',
         ]);
 
-        $record = PasswordResetToken::where('email', $request->email)
-            ->where('token', $request->token)
-            ->first();
+        $recordQuery = PasswordResetTokenModel::where('email', $request->email)
+            ->where('expires_at', '>', now());
+
+        if ($request->filled('token')) {
+            $recordQuery->where('token', $request->token);
+        } elseif ($request->filled('otp')) {
+            $recordQuery->where('otp_code', $request->otp);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Token or OTP is required'
+            ], 400);
+        }
+
+        $record = $recordQuery->first();
 
         if (!$record) {
             return response()->json([
                 'status' => false,
-                'message' => 'Invalid or expired token'
+                'message' => 'Invalid or expired token/OTP'
             ], 400);
         }
 
@@ -132,7 +161,11 @@ class PrimaryController extends Controller
 
         $record->delete();
 
-        // Automatically log the user in after password reset
+        $subject = "Password Changed Successfully";
+        $body = "Your password has been changed successfully. If you did not perform this action, please contact support immediately.";
+
+        Mail::to($request->email)->send(new GeneralMail($subject, $body));
+
         Auth::login($user);
         session()->regenerate();
 
@@ -144,7 +177,7 @@ class PrimaryController extends Controller
                 'session_id' => session()->getId()
             ]
         ]);
-    } */
+    }
 
     public function stateList(Request $request)
     {
@@ -169,9 +202,6 @@ class PrimaryController extends Controller
 
     public function uploadProfilePicture(Request $request)
     {
-        /** @var UserModel $user */
-        $user = Auth::user();
-
         $validator = Validator::make($request->all(), [
             'profile_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048'
         ]);
@@ -184,17 +214,17 @@ class PrimaryController extends Controller
         }
 
         if ($request->hasFile('profile_image')) {
-            if ($user->profile_image && Storage::disk('public')->exists('assets/images/profile/'.$user->profile_image)) {
-                Storage::disk('public')->delete('assets/images/profile/'.$user->profile_image);
+            if ($this->user->profile_image && Storage::disk('public')->exists('assets/images/profile/'.$this->user->profile_image)) {
+                Storage::disk('public')->delete('assets/images/profile/'.$this->user->profile_image);
             }
 
             $file = $request->file('profile_image');
             $filename = time() . '_' . $file->getClientOriginalName();
             $file->storeAs('assets/images/profile', $filename, 'public');
 
-            $user->profile_image = $filename;
-            $user->save();
-            Auth::setUser($user->fresh());
+            $this->user->profile_image = $filename;
+            $this->user->save();
+            Auth::setUser($this->user->fresh());
         }
 
         return response()->json([
@@ -206,9 +236,6 @@ class PrimaryController extends Controller
 
     public function updateProfile(Request $request)
     {
-        /** @var UserModel $user */
-        $user = Auth::user();
-
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|min:2',
             'last_name' => 'required|string|min:2',
@@ -227,23 +254,23 @@ class PrimaryController extends Controller
             ]);
         }
 
-        if (!Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $this->user->password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Current password is incorrect'
             ]);
         }
 
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-        $user->phone = $request->phone;
-        $user->address1 = $request->address1;
-        $user->address2 = $request->address2;
-        $user->country_id = $request->country_id;
-        $user->state_id = $request->state_id;
-        $user->nationality_id = $request->nationality_id;
-        $user->save();
-        Auth::setUser($user->fresh());
+        $this->user->first_name = $request->first_name;
+        $this->user->last_name = $request->last_name;
+        $this->user->phone = $request->phone;
+        $this->user->address1 = $request->address1;
+        $this->user->address2 = $request->address2;
+        $this->user->country_id = $request->country_id;
+        $this->user->state_id = $request->state_id;
+        $this->user->nationality_id = $request->nationality_id;
+        $this->user->save();
+        Auth::setUser($this->user->fresh());
 
         return response()->json([
             'status' => true,
@@ -254,9 +281,6 @@ class PrimaryController extends Controller
 
     public function updatePassword(Request $request)
     {
-        /** @var UserModel $user */
-        $user = Auth::user();
-
         $validator = Validator::make($request->all(), [
             'current_password' => 'required|string|min:6',
             'new_password' => 'required|string|min:6|confirmed'
@@ -269,16 +293,16 @@ class PrimaryController extends Controller
             ]);
         }
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (!Hash::check($request->current_password, $this->user->password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Current password is incorrect'
             ]);
         }
 
-        $user->password = Hash::make($request->new_password);
-        $user->save();
-        Auth::setUser($user->fresh());
+        $this->user->password = Hash::make($request->new_password);
+        $this->user->save();
+        Auth::setUser($this->user->fresh());
 
         return response()->json([
             'status' => true,
@@ -289,26 +313,14 @@ class PrimaryController extends Controller
 
     public function users(Request $request)
     {
-        $columns = [
-            0 => 'id',
-            1 => 'username',
-            2 => 'user_type',
-            3 => 'first_name',
-            4 => 'email',
-            5 => 'phone',
-            6 => 'gender',
-            7 => 'status',
-        ];
-
-        $totalData = UserModel::where('is_deleted', 0)->count();
-        $totalFiltered = $totalData;
-
-        $limit = intval($request->input('length', 10));
-        $start = intval($request->input('start', 0));
-        $orderColumnIndex = intval($request->input('order.0.column', 1));
-        $orderColumn = $columns[$orderColumnIndex] ?? 'id';
+        $orderColumnIndex = intval($request->input('order.0.column', 0));
         $orderDir = $request->input('order.0.dir', 'asc');
         $search = $request->input('search.value', null);
+        $limit = intval($request->input('length', 10));
+        $start = intval($request->input('start', 0));
+
+        $columns = array_keys((new UserModel)->getAttributes());
+        $orderColumn = $columns[$orderColumnIndex] ?? 'id';
 
         $query = UserModel::where('is_deleted', 0);
 
@@ -321,18 +333,18 @@ class PrimaryController extends Controller
                 ->orWhere('email', 'like', "%{$search}%")
                 ->orWhere('phone', 'like', "%{$search}%");
             });
-
-            $totalFiltered = $query->count();
         }
 
-        $users = $query->orderBy($orderColumn, $orderDir)
-            ->offset($start)
-            ->limit($limit)
-            ->get();
+        $totalData = UserModel::where('is_deleted', 0)->count();
+        $totalFiltered = $search ? $query->count() : $totalData;
 
-        $data = [];
-        foreach ($users as $user) {
-            $nestedData = [
+        $users = $query->orderBy($orderColumn, $orderDir)
+                    ->offset($start)
+                    ->limit($limit)
+                    ->get();
+
+        $data = $users->map(function ($user) {
+            return [
                 'id' => $user->id,
                 'username' => $user->username,
                 'user_type' => $user->user_type,
@@ -344,8 +356,7 @@ class PrimaryController extends Controller
                 'gender' => $user->gender,
                 'status' => $user->is_active ? 1 : 0,
             ];
-            $data[] = $nestedData;
-        }
+        });
 
         return response()->json([
             'draw' => intval($request->input('draw', 1)),
@@ -493,26 +504,16 @@ class PrimaryController extends Controller
 
     public function productCategories(Request $request)
     {
-        $columns = [
-            0 => 'id',
-            1 => 'name',
-            2 => 'parent_id',
-            3 => 'description',
-            4 => 'icon',
-            5 => 'is_blocked',
-        ];
-
-        $totalData = ProductCategoryModel::withoutGlobalScope('active')->count();
-        $totalFiltered = $totalData;
-
-        $limit = intval($request->input('length', 10));
-        $start = intval($request->input('start', 0));
-        $orderColumnIndex = intval($request->input('order.0.column', 1));
-        $orderColumn = $columns[$orderColumnIndex] ?? 'id';
+        $orderColumnIndex = intval($request->input('order.0.column', 0));
         $orderDir = $request->input('order.0.dir', 'asc');
         $search = $request->input('search.value', null);
+        $limit = intval($request->input('length', 10));
+        $start = intval($request->input('start', 0));
 
-        $query = ProductCategoryModel::query();
+        $columns = array_keys((new ProductCategoryModel)->getAttributes());
+        $orderColumn = $columns[$orderColumnIndex] ?? 'id';
+
+        $query = ProductCategoryModel::withoutGlobalScope('active');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -520,17 +521,18 @@ class PrimaryController extends Controller
                 ->orWhere('description', 'like', "%{$search}%")
                 ->orWhere('icon', 'like', "%{$search}%");
             });
-            $totalFiltered = $query->count();
         }
 
-        $categories = $query->orderBy($orderColumn, $orderDir)
-            ->offset($start)
-            ->limit($limit)
-            ->get();
+        $totalData = ProductCategoryModel::withoutGlobalScope('active')->count();
+        $totalFiltered = $search ? $query->count() : $totalData;
 
-        $data = [];
-        foreach ($categories as $cat) {
-            $data[] = [
+        $categories = $query->orderBy($orderColumn, $orderDir)
+                            ->offset($start)
+                            ->limit($limit)
+                            ->get();
+
+        $data = $categories->map(function ($cat) {
+            return [
                 'id' => $cat->id,
                 'name' => $cat->name,
                 'parent_name' => $cat->parent?->name ?? '',
@@ -538,7 +540,7 @@ class PrimaryController extends Controller
                 'icon' => $cat->icon,
                 'is_blocked' => $cat->is_blocked,
             ];
-        }
+        });
 
         return response()->json([
             'draw' => intval($request->input('draw', 1)),

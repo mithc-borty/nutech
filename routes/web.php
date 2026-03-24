@@ -38,9 +38,9 @@ Route::get('/contact', [FrontPrimaryController::class, 'contact']);
 Route::get('/quote', [FrontPrimaryController::class, 'quote']);
 
 Route::prefix('admin')->middleware('web')->group(function () {
-    Route::get('login', [AdminPrimaryController::class, 'login'])->name('admin.login');
-    Route::get('forgot-password', [AdminPrimaryController::class, 'forgotPassword'])->name('admin.forgot_password');
-    Route::get('recover-password', [AdminPrimaryController::class, 'recoverPassword'])->name('admin.recover_password');
+    Route::get('login', [AdminPrimaryController::class, 'login']);
+    Route::get('forgot-password', [AdminPrimaryController::class, 'forgotPassword']);
+    Route::get('recover-password/{token?}', [AdminPrimaryController::class, 'recoverPassword']);
 
     Route::middleware(['admin.auth:' . UserTypeEnums::admin->value . ',' . UserTypeEnums::super_admin->value])->group(function () {
         Route::get('/', [AdminPrimaryController::class, 'dashboard']);

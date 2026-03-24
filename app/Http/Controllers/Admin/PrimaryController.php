@@ -39,9 +39,12 @@ class PrimaryController extends Controller
         return view('admin.forgot_password');
     }
 
-    public function recoverPassword(Request $request): View
+    public function recoverPassword(Request $request, $token = null): View
     {
-        return view('admin.recover_password');
+        $this->viewDataArr['active_page'] = 'recover-password';
+        $this->viewDataArr['token'] = $token;
+
+        return view('admin.recover_password', $this->viewDataArr);
     }
 
     public function dashboard(Request $request): View
