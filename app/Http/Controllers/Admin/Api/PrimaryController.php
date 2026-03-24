@@ -31,54 +31,55 @@ class PrimaryController extends Controller
             'remember' => 'sometimes|boolean',
         ]);
 
-        $user = UserModel::where('email', $request->email)
-            ->where('is_active', true)
-            ->where('is_blocked', false)
-            ->where('is_deleted', false)
-            ->first();
+        $remember = $request->boolean('remember', false);
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        $credentials = [
+            'email' => $request->email,
+            'password' => $request->password,
+            'is_active' => true,
+            'is_blocked' => false,
+            'is_deleted' => false,
+        ];
+
+        if (!Auth::attempt($credentials, $remember)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials or access denied'
             ], 401);
         }
 
+        $user = Auth::user();
+
         if (!in_array($user->user_type, [UserTypeEnums::admin->value, UserTypeEnums::super_admin->value])) {
+            Auth::logout();
             return response()->json([
                 'status' => false,
                 'message' => 'User type not allowed'
             ], 403);
         }
 
-        $remember = $request->boolean('remember', false);
-        Auth::login($user, $remember);
         session()->regenerate();
 
         return response()->json([
             'status' => true,
             'message' => 'Login successful',
             'data' => [
-                'user' => $user,
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'user_type' => $user->user_type,
+                    'phone' => $user->phone,
+                    'gender' => $user->gender,
+                ],
                 'session_id' => session()->getId(),
             ]
         ]);
     }
 
-    /* public function logout(Request $request)
-    {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Logged out successfully'
-        ]);
-    }
-
-    public function forgotPassword(Request $request)
+    /* public function forgotPassword(Request $request)
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',

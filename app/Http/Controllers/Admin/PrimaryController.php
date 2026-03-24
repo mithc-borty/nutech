@@ -177,9 +177,17 @@ class PrimaryController extends Controller
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
+        if ($user instanceof UserModel) {
+            $user->remember_token = null;
+            $user->save();
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect(url('admin/login'));
     }
 }

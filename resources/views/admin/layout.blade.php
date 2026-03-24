@@ -68,13 +68,7 @@
                     <!-- Menu Footer -->
                     <li class="user-footer">
                         <a href="{{ url('admin/profile') }}" class="btn btn-default btn-flat">Profile</a>
-                        <a href="{{ url('admin/logout') }}" class="btn btn-default btn-flat float-right"
-                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        Sign out
-                        </a>
-                        <form id="logout-form" action="{{ url('admin/logout') }}" method="POST" style="display: none;">
-                            @csrf
-                        </form>
+                        <a href="{{ url('admin/logout') }}" class="btn btn-default btn-flat float-right">Sign out</a>
                     </li>
                 </ul>
             </li>
