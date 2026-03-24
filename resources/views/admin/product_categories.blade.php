@@ -179,6 +179,8 @@ $(document).ready(function () {
     $('#addCategoryBtn').click(() => {
         $('#btn-save').css('display', 'block');
         $('#categoryForm')[0].reset();
+        $('#categoryForm').validate().resetForm();
+        $('#categoryForm').find('.is-invalid').removeClass('is-invalid');
         $('#category_id').val('');
         categoryModal.find('.modal-title').text('Add Category');
         $('input, textarea, select').prop('readonly', false).prop('disabled', false);
@@ -188,6 +190,9 @@ $(document).ready(function () {
     $(document).on('click', '.editCategory', function(){
         $('#btn-save').css('display', 'block');
         let id = $(this).data('id');
+        $('#categoryForm').validate().resetForm();
+        $('#categoryForm').find('.is-invalid').removeClass('is-invalid');
+
         $.post("{{ url('api/admin/product-category-detail') }}", { _token: "{{ csrf_token() }}", id: id }, function(res){
             if(res.status){
                 let cat = res.data;
@@ -230,6 +235,32 @@ $(document).ready(function () {
             name: { required: true, maxlength: 150 },
             description: { maxlength: 500 },
             icon: { maxlength: 100 }
+        },
+        messages: {
+            name: { required: "Category name is required", maxlength: "Maximum 150 characters allowed" },
+            description: { maxlength: "Maximum 500 characters allowed" },
+            icon: { maxlength: "Maximum 100 characters allowed" }
+        },
+        errorElement: 'span',
+        errorClass: 'text-danger',
+        highlight: function(element) {
+            $(element).addClass('is-invalid');
+            if($(element).hasClass('select2-hidden-accessible')) {
+                $(element).next('.select2-container').addClass('is-invalid');
+            }
+        },
+        unhighlight: function(element) {
+            $(element).removeClass('is-invalid');
+            if($(element).hasClass('select2-hidden-accessible')) {
+                $(element).next('.select2-container').removeClass('is-invalid');
+            }
+        },
+        errorPlacement: function(error, element) {
+            if(element.hasClass('select2-hidden-accessible')) {
+                error.insertAfter(element.next('.select2-container'));
+            } else {
+                error.insertAfter(element);
+            }
         },
         submitHandler: function(form){
             $.ajax({

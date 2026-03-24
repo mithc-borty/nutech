@@ -360,7 +360,7 @@ class PrimaryController extends Controller
         $id = $request->post('id', 0);
 
         $rules = [
-            'username'    => 'required|string|min:3|max:50|unique:users,username' . ($id ? ",$id" : ''),
+            'username' => 'required|string|min:3|max:50|unique:users,username' . ($id ? ",$id" : '') . '|regex:/^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*$/',
             'email'       => 'required|email|max:100|unique:users,email' . ($id ? ",$id" : ''),
             'first_name'  => 'required|string|min:2|max:50',
             'middle_name' => 'nullable|string|max:50',

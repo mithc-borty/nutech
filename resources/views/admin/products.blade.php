@@ -232,6 +232,10 @@ $(document).ready(function(){
         $('#productImages').val('');
         $('#deletedImagesContainer').remove();
         productModal.find('.modal-title').text('Add Product');
+        if($('#productForm').data('validator')){
+            $('#productForm').validate().resetForm();
+            $('#productForm').find('.is-invalid').removeClass('is-invalid');
+        }
         productModal.modal('show');
     });
 
@@ -283,6 +287,11 @@ $(document).ready(function(){
                     });
                 }
 
+                if($('#productForm').data('validator')){
+                    $('#productForm').validate().resetForm();
+                    $('#productForm').find('.is-invalid').removeClass('is-invalid');
+                }
+
                 productModal.find('.modal-title').text('Edit Product');
                 productModal.modal('show');
             } else {
@@ -291,35 +300,64 @@ $(document).ready(function(){
         });
     });
 
-    $('#productForm').submit(function(e){
-        e.preventDefault();
-        let formData = new FormData(this);
-        formData.append('_token', "{{ csrf_token() }}");
-        $.ajax({
-            url: "{{ url('api/admin/add-edit-product') }}",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(res){
-                productModal.modal('hide');
-                $('#productForm')[0].reset();
-                $('#product_id').val('');
-                $('#productImages').val('');
-                $('#imagePreviewContainer').html('');
-                $('#existingImages').html('');
-                $('#deletedImagesContainer').remove();
-                if(res.status){
-                    showMessage('success', res.message ?? 'Saved successfully');
-                    table.ajax.reload();
-                } else {
-                    showMessage('error', res.message ?? 'Something went wrong');
-                }
-            },
-            error: function(xhr){
-                showMessage('error', xhr.responseJSON?.message ?? 'Something went wrong');
+    $('#productForm').validate({
+        rules: {
+            title: { required: true, maxlength: 150 },
+            category_id: { required: true },
+            price: { required: true, number: true, min: 0 },
+            description: { maxlength: 1000 },
+            features: { maxlength: 2000 },
+            specifications: { maxlength: 2000 },
+            'images[]': { extension: "jpg|jpeg|png|gif" }
+        },
+        messages: {
+            title: { required: "Please enter the product title" },
+            category_id: { required: "Please select a category" },
+            price: { required: "Please enter the price", number: "Please enter a valid number", min: "Price must be at least 0" },
+            'images[]': { extension: "Only image files (jpg, jpeg, png, gif) are allowed" }
+        },
+        errorElement: 'span',
+        errorClass: 'text-danger',
+        highlight: function(element) { $(element).addClass('is-invalid'); },
+        unhighlight: function(element) { $(element).removeClass('is-invalid'); },
+        errorPlacement: function(error, element) {
+            if(element.attr("name") === "category_id") {
+                error.insertAfter(element.next('span.select2'));
+            } else if(element.attr("name") === "images[]") {
+                error.insertAfter('#productImages');
+            } else {
+                error.insertAfter(element);
             }
-        });
+        },
+        submitHandler: function(form){
+            let formData = new FormData(form);
+            formData.append('_token', "{{ csrf_token() }}");
+            $.ajax({
+                url: "{{ url('api/admin/add-edit-product') }}",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res){
+                    productModal.modal('hide');
+                    $('#productForm')[0].reset();
+                    $('#product_id').val('');
+                    $('#productImages').val('');
+                    $('#imagePreviewContainer').html('');
+                    $('#existingImages').html('');
+                    $('#deletedImagesContainer').remove();
+                    if(res.status){
+                        showMessage('success', res.message ?? 'Saved successfully');
+                        table.ajax.reload();
+                    } else {
+                        showMessage('error', res.message ?? 'Something went wrong');
+                    }
+                },
+                error: function(xhr){
+                    showMessage('error', xhr.responseJSON?.message ?? 'Something went wrong');
+                }
+            });
+        }
     });
 
     $('#selectAll').click(function(){

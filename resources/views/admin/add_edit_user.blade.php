@@ -56,6 +56,7 @@
                             <div class="col-md-6 form-group">
                                 <label>User Type</label>
                                 <select name="user_type" class="form-control" required>
+                                    <option value="">Select User Type</option>
                                     @foreach($user_types as $value => $label)
                                         <option value="{{ $value }}" @if(isset($user) && $user->user_type == $value) selected @endif>{{ $label }}</option>
                                     @endforeach
@@ -64,6 +65,7 @@
                             <div class="col-md-6 form-group">
                                 <label>Gender</label>
                                 <select name="gender" class="form-control" required>
+                                    <option value="">Select Gender</option>
                                     @foreach($genders as $value => $label)
                                         <option value="{{ $value }}" @if(isset($user) && $user->gender == $value) selected @endif>{{ $label }}</option>
                                     @endforeach
@@ -108,6 +110,7 @@
                             <div class="col-md-6 form-group">
                                 <label>Status</label>
                                 <select name="is_active" class="form-control">
+                                    <option value="">Select Status</option>
                                     <option value="1" @if(isset($user) && $user->is_active) selected @endif>Active</option>
                                     <option value="0" @if(isset($user) && !$user->is_active) selected @endif>Inactive</option>
                                 </select>
@@ -189,7 +192,7 @@ $(document).ready(function() {
         }, 500);
     });
 
-    $('#addEditUserForm').submit(function(e){
+    /* $('#addEditUserForm').submit(function(e){
         e.preventDefault();
         let usernameStatusText = $('#usernameStatus').text();
         if(usernameStatusText.includes('Taken') || usernameStatusText.includes('Too short')){
@@ -205,8 +208,77 @@ $(document).ready(function() {
                 showMessage('error', res.message);
             }
         });
-    });
+    }); */
 
+    $('#addEditUserForm').validate({
+        rules: {
+            username: {
+                required: true,
+                minlength: 3,
+                maxlength: 50,
+                pattern: /^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*$/
+            },
+            email: {
+                required: true,
+                email: true
+            },
+            first_name: { required: true, maxlength: 50 },
+            middle_name: { maxlength: 50 },
+            last_name: { required: true, maxlength: 50 },
+            phone: { required: true, maxlength: 20 },
+            address1: { required: true, maxlength: 150 },
+            password: {
+                required: function(){ return $('input[name="id"]').val() == 0; },
+                minlength: 6,
+                maxlength: 50
+            },
+            user_type: { required: true },
+            gender: { required: true },
+            country_id: { required: true },
+            state_id: { required: true },
+            nationality_id: { required: true },
+            is_active: { required: true }
+        },
+        messages: {
+            username: { pattern: "Only letters, numbers, ., _, - are allowed and cannot start or end with them" }
+        },
+        errorElement: 'span',
+        errorClass: 'text-danger',
+        highlight: function(element) {
+            $(element).addClass('is-invalid');
+            if($(element).hasClass('select2-hidden-accessible')) {
+                $(element).next('.select2-container').addClass('is-invalid');
+            }
+        },
+        unhighlight: function(element) {
+            $(element).removeClass('is-invalid');
+            if($(element).hasClass('select2-hidden-accessible')) {
+                $(element).next('.select2-container').removeClass('is-invalid');
+            }
+        },
+        errorPlacement: function(error, element) {
+            if(element.hasClass('select2-hidden-accessible')) {
+                error.insertAfter(element.next('.select2-container'));
+            } else {
+                error.insertAfter(element);
+            }
+        },
+        submitHandler: function(form){
+            let usernameStatusText = $('#usernameStatus').text();
+            if(usernameStatusText.includes('Taken') || usernameStatusText.includes('Too short')){
+                showMessage('error', 'Please choose a valid username.');
+                return;
+            }
+            $.post("{{ url('api/admin/add-edit-user') }}", $(form).serialize(), function(res){
+                if(res.status){
+                    showMessage('success', res.message);
+                    setTimeout(() => window.location.href = "{{ url('admin/users') }}", 1000);
+                } else {
+                    showMessage('error', res.message);
+                }
+            });
+        }
+    });
 });
 </script>
 @endsection
