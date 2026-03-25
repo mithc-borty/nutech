@@ -181,6 +181,7 @@
 <!-- <script src="{{ asset('admin/dist/js/demo.js') }}"></script>
 <script src="{{ asset('admin/dist/js/pages/dashboard.js') }}"></script> -->
 <script src="{{ asset('admin/plugins/jquery-validation/jquery.validate.min.js') }}"></script>
+<script src="{{ asset('admin/plugins/jquery-validation/additional-methods.min.js') }}"></script>
 
 @yield('JS')
 </body>

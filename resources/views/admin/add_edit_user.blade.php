@@ -22,7 +22,7 @@
 
     <section class="content">
         <div class="container-fluid">
-            <form id="addEditUserForm">
+            <form id="addEditUserForm" onsubmit="return false;">
                 @csrf
                 <input type="hidden" name="id" value="{{ $user->id ?? 0 }}">
                 <div class="card card-primary">
@@ -139,20 +139,25 @@ $(document).ready(function() {
     $('#country, #state, #nationality').select2({
         placeholder: function() { return $(this).data('placeholder') || "Select an option"; },
         allowClear: true
-    }).on('change', function(){ $(this).valid(); });
+    }).on('change', function() {
+        $(this).valid();
+    });
 
     function loadStates(countryId, selected = null) {
-        if(!countryId) return;
+        if (!countryId) return;
         $.post("{{ url('api/admin/state-list') }}", { _token: csrfToken, country_id: countryId }, function(res) {
             let options = '<option value="">Select State</option>';
             res.data.forEach(s => {
                 options += `<option value="${s.id}" ${selected == s.id ? 'selected' : ''}>${s.name}</option>`;
             });
             $('select[name="state_id"]').html(options);
+            if (selected) {
+                $('select[name="state_id"]').valid();
+            }
         });
     }
 
-    if(user && user.country_id){
+    if (user && user.country_id) {
         loadStates(user.country_id, user.state_id);
     }
 
@@ -168,13 +173,13 @@ $(document).ready(function() {
             let username = input.val().trim();
             let userId = $('input[name="id"]').val() || 0;
 
-            if(username.length < 3){
+            if (username.length < 3) {
                 $('#usernameStatus').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Too short</span>');
                 return;
             }
 
-            if(!/^[a-zA-Z0-9._-]+$/.test(username)){
-                $('#usernameStatus').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Only letters, numbers, ., _, - are allowed</span>');
+            if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+                $('#usernameStatus').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Invalid format</span>');
                 return;
             }
 
@@ -182,35 +187,18 @@ $(document).ready(function() {
                 _token: csrfToken, 
                 username: username, 
                 id: userId 
-            }, function(res){
-                if(res.available){
-                    $('#usernameStatus').html('<span class="text-success"><i class="fas fa-check-circle"></i> Available</span>');
+            }, function(res) {
+                if (res.available) {
+                    $('#usernameStatus').html('<span class="text-success" id="user-available"><i class="fas fa-check-circle"></i> Available</span>');
                 } else {
-                    $('#usernameStatus').html('<span class="text-danger"><i class="fas fa-times-circle"></i> Taken, try: '+res.suggestion+'</span>');
+                    $('#usernameStatus').html('<span class="text-danger" id="user-taken"><i class="fas fa-times-circle"></i> Taken, try: ' + res.suggestion + '</span>');
                 }
             });
         }, 500);
     });
 
-    /* $('#addEditUserForm').submit(function(e){
-        e.preventDefault();
-        let usernameStatusText = $('#usernameStatus').text();
-        if(usernameStatusText.includes('Taken') || usernameStatusText.includes('Too short')){
-            showMessage('error', 'Please choose a valid username.');
-            return;
-        }
-        let formData = $(this).serialize();
-        $.post("{{ url('api/admin/add-edit-user') }}", formData, function(res){
-            if(res.status){
-                showMessage('success', res.message);
-                setTimeout(() => window.location.href = "{{ url('admin/users') }}", 1000);
-            } else {
-                showMessage('error', res.message);
-            }
-        });
-    }); */
-
     $('#addEditUserForm').validate({
+        ignore: [],
         rules: {
             username: {
                 required: true,
@@ -218,19 +206,16 @@ $(document).ready(function() {
                 maxlength: 50,
                 pattern: /^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*$/
             },
-            email: {
-                required: true,
-                email: true
-            },
+            email: { required: true, email: true },
             first_name: { required: true, maxlength: 50 },
-            middle_name: { maxlength: 50 },
             last_name: { required: true, maxlength: 50 },
-            phone: { required: true, maxlength: 20 },
+            phone: { required: true, maxlength: 10, digits: true },
             address1: { required: true, maxlength: 150 },
             password: {
-                required: function(){ return $('input[name="id"]').val() == 0; },
-                minlength: 6,
-                maxlength: 50
+                required: function() {
+                    return $('input[name="id"]').val() == "0" || $('input[name="id"]').val() == "";
+                },
+                minlength: 6
             },
             user_type: { required: true },
             gender: { required: true },
@@ -240,43 +225,51 @@ $(document).ready(function() {
             is_active: { required: true }
         },
         messages: {
-            username: { pattern: "Only letters, numbers, ., _, - are allowed and cannot start or end with them" }
+            username: { pattern: "Letters, numbers, ., _, - only. Cannot start/end with symbols." }
         },
         errorElement: 'span',
         errorClass: 'text-danger',
         highlight: function(element) {
             $(element).addClass('is-invalid');
-            if($(element).hasClass('select2-hidden-accessible')) {
-                $(element).next('.select2-container').addClass('is-invalid');
+            if ($(element).hasClass('select2-hidden-accessible')) {
+                $(element).next('.select2-container').find('.select2-selection').addClass('is-invalid');
             }
         },
         unhighlight: function(element) {
             $(element).removeClass('is-invalid');
-            if($(element).hasClass('select2-hidden-accessible')) {
-                $(element).next('.select2-container').removeClass('is-invalid');
+            if ($(element).hasClass('select2-hidden-accessible')) {
+                $(element).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
             }
         },
         errorPlacement: function(error, element) {
-            if(element.hasClass('select2-hidden-accessible')) {
+            if (element.hasClass('select2-hidden-accessible')) {
                 error.insertAfter(element.next('.select2-container'));
             } else {
                 error.insertAfter(element);
             }
         },
-        submitHandler: function(form){
-            let usernameStatusText = $('#usernameStatus').text();
-            if(usernameStatusText.includes('Taken') || usernameStatusText.includes('Too short')){
+        submitHandler: function(form) {
+            if ($('#user-taken').length > 0) {
                 showMessage('error', 'Please choose a valid username.');
-                return;
+                return false;
             }
-            $.post("{{ url('api/admin/add-edit-user') }}", $(form).serialize(), function(res){
-                if(res.status){
+
+            const btn = $(form).find('button[type="submit"]');
+            btn.prop('disabled', true);
+
+            $.post("{{ url('api/admin/add-edit-user') }}", $(form).serialize(), function(res) {
+                if (res.status) {
                     showMessage('success', res.message);
                     setTimeout(() => window.location.href = "{{ url('admin/users') }}", 1000);
                 } else {
                     showMessage('error', res.message);
+                    btn.prop('disabled', false);
                 }
+            }).fail(function() {
+                showMessage('error', 'Server error.');
+                btn.prop('disabled', false);
             });
+            return false;
         }
     });
 });

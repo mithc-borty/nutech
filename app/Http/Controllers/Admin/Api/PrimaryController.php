@@ -26,14 +26,6 @@ class PrimaryController extends Controller
 {
     protected UserModel $user;
 
-    public function __construct()
-    {
-        $this->user = Auth::user();
-        if (!$this->user instanceof UserModel) {
-            throw new \RuntimeException('Authenticated user is not a valid UserModel instance.');
-        }
-    }
-
     public function login(Request $request)
     {
         $request->validate([
@@ -171,7 +163,7 @@ class PrimaryController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Password updated successfully and logged in',
+            'message' => 'Password updated successfully',
             'data' => [
                 'user' => $user,
                 'session_id' => session()->getId()
