@@ -64,7 +64,7 @@
                   </div>
                </div>
                <!-- Navbar -->
-               <div class="nav-bar px-0 py-lg-0" style="height: 80px;">
+               <div class="nav-bar px-0 py-lg-0">
                   <nav class="navbar navbar-expand-lg navbar-light d-flex justify-content-lg-end">
                      <a href="{{ url('/') }}" class="navbar-brand-2">
                      </a>

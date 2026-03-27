@@ -304,16 +304,16 @@ $(document).ready(function(){
         data:{_token:'{{ csrf_token() }}'},
         success:function(res){
             if(res.status && res.data){
-                $('input[name="front_setting[site_title]"]').val(res.data.site_title||'');
-                $('textarea[name="front_setting[meta_description]"]').val(res.data.meta_description||'');
-                $('textarea[name="front_setting[footer_text]"]').val(res.data.footer_text||'');
-                $('input[name="front_setting[about_heading]"]').val(res.data.about_heading||'');
-                $('textarea[name="front_setting[about_desc]"]').val(res.data.about_desc||'');
-                $('textarea[name="front_setting[about_stats]"]').val(res.data.about_stats.stats||'');
-                $('input[name="front_setting[cta_heading]"]').val(res.data.cta_heading||'');
-                $('input[name="front_setting[cta_subheading]"]').val(res.data.cta_subheading||'');
-                $('input[name="front_setting[cta_btn_text]"]').val(res.data.cta_btn_text||'');
-                $('input[name="front_setting[cta_btn_url]"]').val(res.data.cta_btn_url||'');
+                $('input[name="front_setting[site_title]"]').val(res.data?.site_title || '');
+                $('textarea[name="front_setting[meta_description]"]').val(res.data?.meta_description || '');
+                $('textarea[name="front_setting[footer_text]"]').val(res.data?.footer_text || '');
+                $('input[name="front_setting[about_heading]"]').val(res.data?.about_heading || '');
+                $('textarea[name="front_setting[about_desc]"]').val(res.data?.about_desc || '');
+                $('textarea[name="front_setting[about_stats]"]').val(res.data?.about_stats?.stats || '');
+                $('input[name="front_setting[cta_heading]"]').val(res.data?.cta_heading || '');
+                $('input[name="front_setting[cta_subheading]"]').val(res.data?.cta_subheading || '');
+                $('input[name="front_setting[cta_btn_text]"]').val(res.data?.cta_btn_text || '');
+                $('input[name="front_setting[cta_btn_url]"]').val(res.data?.cta_btn_url || '');
                 
                 if(res.data.front_logo) $('#frontLogoPreview').attr('src',"{{ url('/') }}"+res.data.front_logo).show();
                 if(res.data.favicon) $('#faviconPreview').attr('src',"{{ url('/') }}"+res.data.favicon).show();

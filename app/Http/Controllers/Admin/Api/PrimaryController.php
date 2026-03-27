@@ -505,7 +505,9 @@ class PrimaryController extends Controller
         $columns = array_keys((new ProductCategoryModel)->getAttributes());
         $orderColumn = $columns[$orderColumnIndex] ?? 'id';
 
-        $query = ProductCategoryModel::withoutGlobalScope('active');
+        $query = ProductCategoryModel::withoutGlobalScope('active')
+                    ->where('is_blocked', false)
+                    ->where('is_deleted', false);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -515,7 +517,11 @@ class PrimaryController extends Controller
             });
         }
 
-        $totalData = ProductCategoryModel::withoutGlobalScope('active')->count();
+        $totalData = ProductCategoryModel::withoutGlobalScope('active')
+                    ->where('is_blocked', false)
+                    ->where('is_deleted', false)
+                    ->count();
+
         $totalFiltered = $search ? $query->count() : $totalData;
 
         $categories = $query->orderBy($orderColumn, $orderDir)
@@ -531,6 +537,7 @@ class PrimaryController extends Controller
                 'description' => $cat->description,
                 'icon' => $cat->icon,
                 'is_blocked' => $cat->is_blocked,
+                'is_deleted' => $cat->is_deleted,
             ];
         });
 

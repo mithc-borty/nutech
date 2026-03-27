@@ -80,7 +80,7 @@
             </div>
             <div class="col-lg-5 wow fadeInRight" data-wow-delay="0.2s">
                 <div class="position-relative h-100">
-                    <img src="{{ asset('front/img/about-1.jpg') }}" class="img-fluid w-100 h-100 rounded" style="object-fit: cover;" alt="Office Interior Planning">
+                    <img src="{{ asset('front/img/about-1.png') }}" class="img-fluid w-100 h-100 rounded" style="object-fit: cover;" alt="Office Interior Planning">
                     <div class="bg-white p-4 position-absolute shadow-sm rounded" style="bottom: -20px; left: -20px; max-width: 250px;">
                         <h2 class="text-primary mb-0">18+</h2>
                         <p class="mb-0 fw-bold text-dark">Years of Excellence</p>
@@ -139,8 +139,8 @@
             </div>
             <div class="col-lg-6">
                 <div class="row g-3">
-                    <div class="col-6"><img class="img-fluid rounded shadow" src="{{ asset('front/img/service-1.jpg') }}" alt="AutoCAD Design"></div>
-                    <div class="col-6"><img class="img-fluid rounded shadow" src="{{ asset('front/img/service-2.jpg') }}" alt="3D Visualization"></div>
+                    <div class="col-6"><img class="img-fluid rounded shadow service-img" src="{{ asset('front/img/service-1.jpg') }}" alt="AutoCAD Design"></div>
+                    <div class="col-6"><img class="img-fluid rounded shadow service-img" src="{{ asset('front/img/service-2.jpg') }}" alt="3D Visualization"></div>
                 </div>
             </div>
         </div>
