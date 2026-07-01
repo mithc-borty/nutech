@@ -6,6 +6,8 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="keywords" content="@yield('keywords', '')">
       <meta name="description" content="@yield('description', '')">
+      <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ $frontSetting && $frontSetting->favicon? url('storage/assets/images/front_setting/' . $frontSetting->favicon) : asset('admin/dist/img/logo_icon.png') }}">
       <!-- Google Web Fonts -->
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

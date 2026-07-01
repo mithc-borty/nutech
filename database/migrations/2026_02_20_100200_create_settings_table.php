@@ -20,21 +20,21 @@ return new class extends Migration
 
         DB::table('settings')->insert([
             [
-                'setting_key' => 'site_name',
-                'setting_value' => 'Nutech Admin',
-                'is_blocked' => false,
-                'is_deleted' => false,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'setting_key' => 'site_url',
-                'setting_value' => 'http://nutech.local/',
-                'is_blocked' => false,
-                'is_deleted' => false,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+				'setting_key' => 'site_name',
+				'setting_value' => env('SITE_NAME', 'Nutech Admin'),
+				'is_blocked' => false,
+				'is_deleted' => false,
+				'created_at' => now(),
+				'updated_at' => now(),
+			],
+			[
+				'setting_key' => 'site_url',
+				'setting_value' => env('SITE_URL', 'http://nutech.local/'),
+				'is_blocked' => false,
+				'is_deleted' => false,
+				'created_at' => now(),
+				'updated_at' => now(),
+			],
             [
                 'setting_key' => 'site_logo',
                 'setting_value' => '',

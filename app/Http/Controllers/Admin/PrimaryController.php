@@ -49,7 +49,12 @@ class PrimaryController extends Controller
 
     public function dashboard(Request $request): View
     {
-        $this->viewDataArr['active_page']   =   'dashboard';
+        $this->viewDataArr['active_page'] = 'dashboard';
+
+        $this->viewDataArr['totalUsers']      = UserModel::count();
+        $this->viewDataArr['totalProducts']   = ProductModel::count();
+        $this->viewDataArr['totalCategories'] = ProductCategoryModel::count();
+
         return view('admin.dashboard', $this->viewDataArr);
     }
 
